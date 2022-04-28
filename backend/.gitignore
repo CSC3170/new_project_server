@@ -1,0 +1,8 @@
+# tmp
+/poetry.lock
+/.venv/
+/.mypy_cache/
+__pycache__/
+
+# dev
+/stubs/

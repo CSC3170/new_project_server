@@ -1,0 +1,90 @@
+version: '3.9'
+services:
+  postgres:
+    image: postgres:latest
+    env_file: ../configs/postgres/postgres.env
+    expose:
+      - '5432'
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  frontend:
+    build:
+      context: ../configs
+      target: dev-frontend
+    expose:
+      - '4000'
+    ports:
+      - '4000:4000'
+    volumes:
+      - type: bind
+        source: ../..
+        target: /new_project_server
+
+  backend:
+    build:
+      context: ../configs
+      target: dev-backend
+    expose:
+      - '8000'
+    ports:
+      - '8000:8000'
+    links:
+      - postgres
+    depends_on:
+      - postgres
+    volumes:
+      - type: bind
+        source: ../..
+        target: /new_project_server
+
+  ngnix:
+    image: nginx:latest
+    expose:
+      - '80'
+    ports:
+      - '80:80'
+    links:
+      - backend
+      - frontend
+    depends_on:
+      - backend
+      - frontend
+    volumes:
+      - ../configs/nginx/dev/nginx.conf:/etc/nginx/nginx.conf
+
+  vscode:
+    build:
+      context: ../configs
+      target: vscode
+      extra_hosts:
+        - 'raw.githubusercontent.com:185.199.109.133'
+    extra_hosts:
+      - 'raw.githubusercontent.com:185.199.109.133'
+    expose:
+      - '8080'
+    ports:
+      - '8080:8080'
+    volumes:
+      - type: bind
+        source: ../..
+        target: /new_project_server
+      - vscode:/root/.local/share/code-server
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    env_file: ../configs/pgadmin/pgadmin.env
+    expose:
+      - '5050'
+    ports:
+      - '5050:5050'
+    links:
+      - postgres
+    volumes:
+      - ../configs/pgadmin/servers.json:/pgadmin4/servers.json
+
+volumes:
+  postgres-data:
+  vscode:
