@@ -3,6 +3,8 @@ from pathlib import Path
 from cryptography.hazmat.primitives import serialization as crypto_serialization
 from cryptography.hazmat.primitives.asymmetric.ed448 import Ed448PrivateKey
 
+from ..config import PRIVATE_KEY_PATH
+
 
 class PrivateKey:
     def __init__(self, path: str):
@@ -30,4 +32,4 @@ class PrivateKey:
         return self._key
 
 
-private_key = PrivateKey('/key/id_ed448')
+private_key = PrivateKey(PRIVATE_KEY_PATH)
