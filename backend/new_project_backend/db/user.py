@@ -5,7 +5,7 @@ from psycopg import AsyncConnection
 from psycopg.errors import UniqueViolation
 from psycopg.rows import class_row
 
-from ..model.user import User
+from ..model.user import AddingUser, User
 from ..utils.password import password_hasher
 from .connection import connection_pool
 
@@ -54,15 +54,8 @@ class UserDB:
                     '''
                 )
 
-    async def insert(
-        self,
-        name: str,
-        password: str,
-        nickname: Optional[str] = None,
-        email: Optional[str] = None,
-        phone: Optional[str] = None,
-    ):
-        hashed_password = password_hasher.hash(password)
+    async def insert(self, user: AddingUser):
+        hashed_password = password_hasher.hash(user.password)
         async with self._connection_generator() as conn:
             async with conn.cursor() as cur:
                 try:
@@ -73,11 +66,11 @@ class UserDB:
                             RETURNING user_id;
                         ''',
                         [
-                            name,
+                            user.name,
                             hashed_password,
-                            nickname,
-                            email,
-                            phone,
+                            user.nickname,
+                            user.email,
+                            user.phone,
                         ],
                     )
                     result: Optional[tuple[int]] = await cur.fetchone()
@@ -85,11 +78,11 @@ class UserDB:
                     user_id = result[0]
                     return User(
                         user_id=user_id,
-                        name=name,
+                        name=user.name,
                         hashed_password=hashed_password,
-                        nickname=nickname,
-                        email=email,
-                        phone=phone,
+                        nickname=user.nickname,
+                        email=user.email,
+                        phone=user.phone,
                     )
                 except UniqueViolation as error:
                     raise DuplicateRecordError() from error
