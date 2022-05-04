@@ -5,6 +5,10 @@ import jwt
 from .key import private_key
 
 
+class InvalidTokenError(Exception):
+    pass
+
+
 def create_token(user_id: int, expiration_seconds: int):
     payload = {
         'sub': user_id,
@@ -18,7 +22,7 @@ def get_user_id_from_token(token: str):
         payload = jwt.decode(token, private_key.get(), ['EdDSA'], require=['sub', 'exp'])
         try:
             return int(payload['sub'])
-        except ValueError:
-            return None
-    except jwt.InvalidTokenError:
-        return None
+        except ValueError as error:
+            raise InvalidTokenError() from error
+    except jwt.InvalidTokenError as error:
+        raise InvalidTokenError() from error
