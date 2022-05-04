@@ -12,10 +12,10 @@ app.include_router(auth_router, prefix='/api')
 
 
 @app.on_event('startup')
-def open_pool():
-    connection_pool.open()
+async def startup():
+    await connection_pool.open()
 
 
 @app.on_event('shutdown')
-def close_pool():
-    connection_pool.close()
+async def shutdown():
+    await connection_pool.close()
