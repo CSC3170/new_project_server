@@ -9,7 +9,7 @@ user_router = APIRouter()
 
 @user_router.get('/user/query')
 async def query_user(user: UserNoPassword = Depends(get_current_user)):
-    return user
+    return UserNoPassword.from_user(user)
 
 
 @user_router.post('/user/add')

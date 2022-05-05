@@ -13,7 +13,7 @@ async def get_current_user(token: str = Depends(oauth2_password_bearer)):
     try:
         user_id = get_user_id_from_token(token)
         user = await user_db.query_by_id(user_id)
-        return UserNoPassword.from_user(user)
+        return user
     except (InvalidTokenError, UserNotExistsError) as error:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
