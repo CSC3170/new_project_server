@@ -30,6 +30,7 @@ services:
       - postgres
     volumes:
       - ../..:/new_project_server
+      - backend-key:/key
 
   ngnix:
     image: nginx:latest
@@ -46,4 +47,5 @@ services:
 
 volumes:
   frontend-dist:
+  backend-key:
   postgres-data:

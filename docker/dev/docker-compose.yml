@@ -39,6 +39,7 @@ services:
       - type: bind
         source: ../..
         target: /new_project_server
+      - backend-key:/key
 
   ngnix:
     image: nginx:latest
@@ -87,4 +88,5 @@ services:
 
 volumes:
   postgres-data:
+  backend-key:
   vscode:
