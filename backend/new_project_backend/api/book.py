@@ -17,8 +17,14 @@ async def query_books(user: User = Depends(get_current_user)):
 
 @book_router.get('/book/{name}')
 async def query_book(name: str, user: User = Depends(get_current_user)):
-    books = await book_db.query_by_name(name)
-    return books
+    try:
+        book = await book_db.query_by_name(name)
+        return book
+    except NotExistsError as error:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail='Incorrect book',
+        ) from error
 
 
 @book_router.post('/book')
