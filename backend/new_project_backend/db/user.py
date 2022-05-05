@@ -122,7 +122,7 @@ class UserDB(DBBase):
                     raise UserNotExistsError()
                 return user
 
-    async def query_by_id(self, user_id: int):
+    async def query_by_user_id(self, user_id: int):
         async with self._connection_generator() as conn:
             async with conn.cursor(row_factory=class_row(User)) as cur:
                 await cur.execute(
@@ -156,7 +156,7 @@ class UserDB(DBBase):
                     raise UserNotExistsError()
                 return user
 
-    async def verify_id_and_password(self, user_id: str, password: str):
+    async def verify_user_id_and_password(self, user_id: str, password: str):
         async with self._connection_generator() as conn:
             async with conn.cursor(row_factory=class_row(User)) as cur:
                 await cur.execute(
@@ -178,7 +178,7 @@ class UserDB(DBBase):
                             f'''
                                 UPDATE {self._table_name}
                                 SET hashed_password = %s
-                                WHERE id = %s;
+                                WHERE user_id = %s;
                             ''',
                             [
                                 user.hashed_password,
@@ -212,7 +212,7 @@ class UserDB(DBBase):
                             f'''
                                 UPDATE {self._table_name}
                                 SET hashed_password = %s
-                                WHERE id = %s;
+                                WHERE user_id = %s;
                             ''',
                             [
                                 user.hashed_password,
