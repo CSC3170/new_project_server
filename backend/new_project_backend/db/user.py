@@ -7,24 +7,24 @@ from psycopg.rows import class_row
 
 from ..model.user import AddingUser, EditingUser, User
 from ..utils.password import password_hasher
-from .base import DBBase, DuplicateRecordError, NotExistsError
 from .connection import connection_pool
+from .errors import DuplicateRecordError, NotExistsError
 
 
 class WrongPasswordError(Exception):
     pass
 
 
-class UserDB(DBBase):
+class UserDB:
     def __init__(self, connection_generator: Callable[..., AsyncContextManager[AsyncConnection]]):
-        super().__init__(connection_generator, '"user"')
+        self._connection_generator = connection_generator
 
     async def create(self):
         async with self._connection_generator() as conn:
             async with conn.cursor() as cur:
                 await cur.execute(
-                    f'''
-                        CREATE TABLE IF NOT EXISTS {self._table_name}(
+                    '''
+                        CREATE TABLE IF NOT EXISTS "user"(
                             user_id BIGSERIAL PRIMARY KEY,
                             name TEXT UNIQUE NOT NULL,
                             hashed_password TEXT NOT NULL,
@@ -33,6 +33,15 @@ class UserDB(DBBase):
                             email TEXT UNIQUE,
                             phone TEXT UNIQUE
                         );
+                    '''
+                )
+
+    async def drop(self):
+        async with self._connection_generator() as conn:
+            async with conn.cursor() as cur:
+                await cur.execute(
+                    '''
+                        DROP TABLE "user";
                     '''
                 )
 
@@ -45,7 +54,7 @@ class UserDB(DBBase):
                 try:
                     await cur.execute(
                         f'''
-                            INSERT INTO {self._table_name}(user_id, {', '.join(adding_user_dict.keys())})
+                            INSERT INTO "user"(user_id, {', '.join(adding_user_dict.keys())})
                             VALUES(DEFAULT, {', '.join(['%s'] * len(adding_user_dict))})
                             RETURNING *;
                         ''',
@@ -57,8 +66,8 @@ class UserDB(DBBase):
                     assert user is not None
                     if user.user_id == 1:
                         await cur.execute(
-                            f'''
-                                UPDATE {self._table_name}
+                            '''
+                                UPDATE "user"
                                 SET is_admin = %s
                                 WHERE user_id = %s;
                             ''',
@@ -77,8 +86,8 @@ class UserDB(DBBase):
                 editing_user_dict = editing_user.dict(exclude_unset=True)
                 if not editing_user_dict:
                     await cur.execute(
-                        f'''
-                            SELECT * FROM {self._table_name}
+                        '''
+                            SELECT * FROM "user"
                             WHERE user_id = %s;
                         ''',
                         [
@@ -92,7 +101,7 @@ class UserDB(DBBase):
                     try:
                         await cur.execute(
                             f'''
-                                UPDATE {self._table_name}
+                                UPDATE "user"
                                 SET {', '.join([f'{key} = %s' for key in editing_user_dict.keys()])}
                                 WHERE user_id = %s
                                 RETURNING *;
@@ -115,8 +124,8 @@ class UserDB(DBBase):
                 editing_user_dict = editing_user.dict(exclude_unset=True)
                 if not editing_user_dict:
                     await cur.execute(
-                        f'''
-                            SELECT * FROM {self._table_name}
+                        '''
+                            SELECT * FROM "user"
                             WHERE name = %s;
                         ''',
                         [
@@ -130,7 +139,7 @@ class UserDB(DBBase):
                     try:
                         await cur.execute(
                             f'''
-                                UPDATE {self._table_name}
+                                UPDATE "user"
                                 SET {', '.join([f'{key} = %s' for key in editing_user_dict.keys()])}
                                 WHERE name = %s
                                 RETURNING *;
@@ -151,8 +160,8 @@ class UserDB(DBBase):
         async with self._connection_generator() as conn:
             async with conn.cursor(row_factory=class_row(User)) as cur:
                 await cur.execute(
-                    f'''
-                        DELETE FROM {self._table_name}
+                    '''
+                        DELETE FROM "user"
                         WHERE user_id = %s
                         RETURNING *;
                     ''',
@@ -169,8 +178,8 @@ class UserDB(DBBase):
         async with self._connection_generator() as conn:
             async with conn.cursor(row_factory=class_row(User)) as cur:
                 await cur.execute(
-                    f'''
-                        DELETE FROM {self._table_name}
+                    '''
+                        DELETE FROM "user"
                         WHERE name = %s
                         RETURNING *;
                     ''',
@@ -187,8 +196,8 @@ class UserDB(DBBase):
         async with self._connection_generator() as conn:
             async with conn.cursor(row_factory=class_row(User)) as cur:
                 await cur.execute(
-                    f'''
-                        SELECT * FROM {self._table_name}
+                    '''
+                        SELECT * FROM "user"
                         WHERE user_id = %s;
                     ''',
                     [
@@ -204,8 +213,8 @@ class UserDB(DBBase):
         async with self._connection_generator() as conn:
             async with conn.cursor(row_factory=class_row(User)) as cur:
                 await cur.execute(
-                    f'''
-                        SELECT * FROM {self._table_name}
+                    '''
+                        SELECT * FROM "user"
                         WHERE name = %s;
                     ''',
                     [
@@ -221,8 +230,8 @@ class UserDB(DBBase):
         async with self._connection_generator() as conn:
             async with conn.cursor(row_factory=class_row(User)) as cur:
                 await cur.execute(
-                    f'''
-                        SELECT * FROM {self._table_name}
+                    '''
+                        SELECT * FROM "user"
                         WHERE user_id = %s;
                     ''',
                     [
@@ -236,8 +245,8 @@ class UserDB(DBBase):
                     if password_hasher.check_needs_rehash(user.hashed_password):
                         user.hashed_password = password_hasher.hash(password)
                         await cur.execute(
-                            f'''
-                                UPDATE {self._table_name}
+                            '''
+                                UPDATE "user"
                                 SET hashed_password = %s
                                 WHERE user_id = %s;
                             ''',
@@ -254,8 +263,8 @@ class UserDB(DBBase):
         async with self._connection_generator() as conn:
             async with conn.cursor(row_factory=class_row(User)) as cur:
                 await cur.execute(
-                    f'''
-                        SELECT * FROM {self._table_name}
+                    '''
+                        SELECT * FROM "user"
                         WHERE name = %s;
                     ''',
                     [
@@ -270,8 +279,8 @@ class UserDB(DBBase):
                     if password_hasher.check_needs_rehash(user.hashed_password):
                         user.hashed_password = password_hasher.hash(password)
                         await cur.execute(
-                            f'''
-                                UPDATE {self._table_name}
+                            '''
+                                UPDATE "user"
                                 SET hashed_password = %s
                                 WHERE user_id = %s;
                             ''',

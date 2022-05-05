@@ -5,25 +5,34 @@ from psycopg.errors import UniqueViolation
 from psycopg.rows import class_row
 
 from ..model.book import AddingBook, Book, EditingBook
-from .base import DBBase, DuplicateRecordError, NotExistsError
 from .connection import connection_pool
+from .errors import DuplicateRecordError, NotExistsError
 
 
-class BookDB(DBBase):
+class BookDB:
     def __init__(self, connection_generator: Callable[..., AsyncContextManager[AsyncConnection]]):
-        super().__init__(connection_generator, 'book')
+        self._connection_generator = connection_generator
 
     async def create(self):
         async with self._connection_generator() as conn:
             async with conn.cursor() as cur:
                 await cur.execute(
-                    f'''
-                        CREATE TABLE IF NOT EXISTS {self._table_name}(
+                    '''
+                        CREATE TABLE IF NOT EXISTS book(
                             book_id BIGSERIAL PRIMARY KEY,
                             name TEXT UNIQUE NOT NULL,
                             description TEXT,
                             word_count BIGINT NOT NULL
                         );
+                    '''
+                )
+
+    async def drop(self):
+        async with self._connection_generator() as conn:
+            async with conn.cursor() as cur:
+                await cur.execute(
+                    '''
+                        DROP TABLE book;
                     '''
                 )
 
@@ -34,7 +43,7 @@ class BookDB(DBBase):
                 try:
                     await cur.execute(
                         f'''
-                            INSERT INTO {self._table_name}(book_id, {', '.join(adding_book_dict.keys())})
+                            INSERT INTO book(book_id, {', '.join(adding_book_dict.keys())})
                             VALUES(DEFAULT, {', '.join(['%s'] * len(adding_book_dict))})
                             RETURNING *;
                         ''',
@@ -54,8 +63,8 @@ class BookDB(DBBase):
                 editing_book_dict = editing_book.dict(exclude_unset=True)
                 if not editing_book_dict:
                     await cur.execute(
-                        f'''
-                            SELECT * FROM {self._table_name}
+                        '''
+                            SELECT * FROM book
                             WHERE book_id = %s;
                         ''',
                         [
@@ -66,7 +75,7 @@ class BookDB(DBBase):
                     try:
                         await cur.execute(
                             f'''
-                                UPDATE {self._table_name}
+                                UPDATE book
                                 SET {', '.join([f'{key} = %s' for key in editing_book_dict.keys()])}
                                 WHERE book_id = %s
                                 RETURNING *;
@@ -89,8 +98,8 @@ class BookDB(DBBase):
                 editing_book_dict = editing_book.dict(exclude_unset=True)
                 if not editing_book_dict:
                     await cur.execute(
-                        f'''
-                            SELECT * FROM {self._table_name}
+                        '''
+                            SELECT * FROM book
                             WHERE name = %s;
                         ''',
                         [
@@ -101,7 +110,7 @@ class BookDB(DBBase):
                     try:
                         await cur.execute(
                             f'''
-                                UPDATE {self._table_name}
+                                UPDATE book
                                 SET {', '.join([f'{key} = %s' for key in editing_book_dict.keys()])}
                                 WHERE name = %s
                                 RETURNING *;
@@ -122,8 +131,8 @@ class BookDB(DBBase):
         async with self._connection_generator() as conn:
             async with conn.cursor(row_factory=class_row(Book)) as cur:
                 await cur.execute(
-                    f'''
-                        DELETE FROM {self._table_name}
+                    '''
+                        DELETE FROM book
                         WHERE book_id = %s
                         RETURNING *;
                     ''',
@@ -140,8 +149,8 @@ class BookDB(DBBase):
         async with self._connection_generator() as conn:
             async with conn.cursor(row_factory=class_row(Book)) as cur:
                 await cur.execute(
-                    f'''
-                        DELETE FROM {self._table_name}
+                    '''
+                        DELETE FROM book
                         WHERE name = %s
                         RETURNING *;
                     ''',
@@ -158,8 +167,8 @@ class BookDB(DBBase):
         async with self._connection_generator() as conn:
             async with conn.cursor(row_factory=class_row(Book)) as cur:
                 await cur.execute(
-                    f'''
-                        SELECT * FROM {self._table_name};
+                    '''
+                        SELECT * FROM book;
                     '''
                 )
                 books = await cur.fetchall()
@@ -169,8 +178,8 @@ class BookDB(DBBase):
         async with self._connection_generator() as conn:
             async with conn.cursor(row_factory=class_row(Book)) as cur:
                 await cur.execute(
-                    f'''
-                        SELECT * FROM {self._table_name}
+                    '''
+                        SELECT * FROM book
                         WHERE book_id = %s;
                     ''',
                     [
@@ -186,8 +195,8 @@ class BookDB(DBBase):
         async with self._connection_generator() as conn:
             async with conn.cursor(row_factory=class_row(Book)) as cur:
                 await cur.execute(
-                    f'''
-                        SELECT * FROM {self._table_name}
+                    '''
+                        SELECT * FROM book
                         WHERE name = %s;
                     ''',
                     [

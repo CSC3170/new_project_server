@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from ..db.base import DuplicateRecordError, NotExistsError
+from ..db.errors import DuplicateRecordError, NotExistsError
 from ..db.user import user_db
 from ..model.user import AddingUser, EditingUser, User, UserNoPassword
 from .auth import get_current_user

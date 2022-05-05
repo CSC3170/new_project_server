@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from ..db.base import DuplicateRecordError, NotExistsError
 from ..db.book import book_db
+from ..db.errors import DuplicateRecordError, NotExistsError
 from ..model.book import AddingBook, EditingBook
 from ..model.user import User
 from .auth import get_current_user, get_current_user_and_require_admin

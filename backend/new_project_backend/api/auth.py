@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestFormStrict
 
-from ..db.base import NotExistsError
+from ..db.errors import NotExistsError
 from ..db.user import WrongPasswordError, user_db
 from ..utils.jwt import InvalidTokenError, create_token, get_user_id_from_token
 from .deps import oauth2_password_bearer
