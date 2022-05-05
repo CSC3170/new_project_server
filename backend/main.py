@@ -92,6 +92,11 @@ def print_title(title: str):
     print(title.center(len(title) + 2, ' ').center(term_width, '='), flush=True)
 
 
+def print_horizontal():
+    term_width, _ = shutil.get_terminal_size()
+    print('=' * term_width, flush=True)
+
+
 def print_empty_line():
     print(flush=True)
 
@@ -126,8 +131,11 @@ def lint():
 
 def start():
     print_title('uvicorn')
-    uvicorn.run('new_project_backend.app:app', host='0.0.0.0', port=8000)
-    print_empty_line()
+    try:
+        uvicorn.run('new_project_backend.app:app', host='0.0.0.0', port=8000)
+    finally:
+        print_horizontal()
+        print_empty_line()
 
 
 def watch():
