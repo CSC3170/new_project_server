@@ -7,6 +7,7 @@ from psycopg.rows import class_row
 
 from ..model.user import AddingUser, EditingUser, User
 from ..utils.password import password_hasher
+from .base import DBBase
 from .connection import connection_pool
 
 
@@ -24,10 +25,9 @@ class DuplicateRecordError(Exception):
         self.record = record
 
 
-class UserDB:
+class UserDB(DBBase):
     def __init__(self, connection_generator: Callable[..., AsyncContextManager[AsyncConnection]]):
-        self._connection_generator = connection_generator
-        self._table_name = '"user"'
+        super().__init__(connection_generator, '"user"')
 
     async def create(self):
         async with self._connection_generator() as conn:
@@ -35,22 +35,11 @@ class UserDB:
                 await cur.execute(
                     f'''
                         CREATE TABLE IF NOT EXISTS {self._table_name}(
-                            user_id BIGSERIAL PRIMARY KEY,
+                            book_id BIGSERIAL PRIMARY KEY,
                             name TEXT UNIQUE NOT NULL,
-                            hashed_password TEXT NOT NULL,
-                            nickname TEXT,
-                            email TEXT UNIQUE,
-                            phone TEXT UNIQUE
+                            description TEXT,
+                            word_count BIGINT NOT NULL
                         );
-                    '''
-                )
-
-    async def drop(self):
-        async with self._connection_generator() as conn:
-            async with conn.cursor() as cur:
-                await cur.execute(
-                    f'''
-                        DROP TABLE {self._table_name};
                     '''
                 )
 
@@ -71,7 +60,7 @@ class UserDB:
                             *adding_user_dict.values(),
                         ],
                     )
-                    user: Optional[User] = await cur.fetchone()
+                    user = await cur.fetchone()
                     assert user is not None
                     return user
                 except UniqueViolation as error:
@@ -110,7 +99,7 @@ class UserDB:
                         )
                     except UniqueViolation as error:
                         raise DuplicateRecordError() from error
-                user: Optional[User] = await cur.fetchone()
+                user = await cur.fetchone()
                 if user is None:
                     raise UserNotExistsError()
                 return user
@@ -128,7 +117,7 @@ class UserDB:
                         user_id,
                     ],
                 )
-                user: Optional[User] = await cur.fetchone()
+                user = await cur.fetchone()
                 if user is None:
                     raise UserNotExistsError()
                 return user
@@ -145,7 +134,7 @@ class UserDB:
                         user_id,
                     ],
                 )
-                user: Optional[User] = await cur.fetchone()
+                user = await cur.fetchone()
                 if user is None:
                     raise UserNotExistsError()
                 return user
@@ -162,7 +151,7 @@ class UserDB:
                         name,
                     ],
                 )
-                user: Optional[User] = await cur.fetchone()
+                user = await cur.fetchone()
                 if user is None:
                     raise UserNotExistsError()
                 return user
@@ -179,7 +168,7 @@ class UserDB:
                         user_id,
                     ],
                 )
-                user: Optional[User] = await cur.fetchone()
+                user = await cur.fetchone()
                 if user is None:
                     raise UserNotExistsError()
                 try:
@@ -212,7 +201,7 @@ class UserDB:
                         name,
                     ],
                 )
-                user: Optional[User] = await cur.fetchone()
+                user = await cur.fetchone()
                 if user is None:
                     raise UserNotExistsError()
                 try:
