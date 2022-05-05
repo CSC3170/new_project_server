@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from ..db.user import DuplicateRecordError, UserNotExistsError, user_db
+from ..db.base import DuplicateRecordError, NotExistsError
+from ..db.user import user_db
 from ..model.user import AddingUser, EditingUser, User, UserNoPassword
 from .auth import get_current_user
 
@@ -34,7 +35,7 @@ async def edit_user(editing_user: EditingUser, user: User = Depends(get_current_
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail='Duplicate records',
         ) from error
-    except UserNotExistsError as error:
+    except NotExistsError as error:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail='Incorrect user',
@@ -46,7 +47,7 @@ async def delete_user(user: User = Depends(get_current_user)):
     try:
         new_user = await user_db.delete_by_user_id(user.user_id)
         return UserNoPassword.from_user(new_user)
-    except UserNotExistsError as error:
+    except NotExistsError as error:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail='Incorrect user',

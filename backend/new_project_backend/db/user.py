@@ -1,4 +1,4 @@
-from typing import AsyncContextManager, Callable, Optional
+from typing import AsyncContextManager, Callable
 
 from argon2.exceptions import VerificationError
 from psycopg import AsyncConnection
@@ -7,22 +7,12 @@ from psycopg.rows import class_row
 
 from ..model.user import AddingUser, EditingUser, User
 from ..utils.password import password_hasher
-from .base import DBBase
+from .base import DBBase, DuplicateRecordError, NotExistsError
 from .connection import connection_pool
-
-
-class UserNotExistsError(Exception):
-    pass
 
 
 class WrongPasswordError(Exception):
     pass
-
-
-class DuplicateRecordError(Exception):
-    def __init__(self, record: Optional[str] = None, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.record = record
 
 
 class UserDB(DBBase):
@@ -103,7 +93,7 @@ class UserDB(DBBase):
                         raise DuplicateRecordError() from error
                 user = await cur.fetchone()
                 if user is None:
-                    raise UserNotExistsError()
+                    raise NotExistsError()
                 return user
 
     async def update_by_name(self, name: str, editing_user: EditingUser):
@@ -141,7 +131,7 @@ class UserDB(DBBase):
                         raise DuplicateRecordError() from error
                 user = await cur.fetchone()
                 if user is None:
-                    raise UserNotExistsError()
+                    raise NotExistsError()
                 return user
 
     async def delete_by_user_id(self, user_id: int):
@@ -159,7 +149,7 @@ class UserDB(DBBase):
                 )
                 user = await cur.fetchone()
                 if user is None:
-                    raise UserNotExistsError()
+                    raise NotExistsError()
                 return user
 
     async def delete_by_name(self, name: str):
@@ -177,7 +167,7 @@ class UserDB(DBBase):
                 )
                 user = await cur.fetchone()
                 if user is None:
-                    raise UserNotExistsError()
+                    raise NotExistsError()
                 return user
 
     async def query_by_user_id(self, user_id: int):
@@ -194,7 +184,7 @@ class UserDB(DBBase):
                 )
                 user = await cur.fetchone()
                 if user is None:
-                    raise UserNotExistsError()
+                    raise NotExistsError()
                 return user
 
     async def query_by_name(self, name: str):
@@ -211,7 +201,7 @@ class UserDB(DBBase):
                 )
                 user = await cur.fetchone()
                 if user is None:
-                    raise UserNotExistsError()
+                    raise NotExistsError()
                 return user
 
     async def verify_user_id_and_password(self, user_id: int, password: str):
@@ -228,7 +218,7 @@ class UserDB(DBBase):
                 )
                 user = await cur.fetchone()
                 if user is None:
-                    raise UserNotExistsError()
+                    raise NotExistsError()
                 try:
                     if password_hasher.check_needs_rehash(user.hashed_password):
                         user.hashed_password = password_hasher.hash(password)
@@ -261,7 +251,7 @@ class UserDB(DBBase):
                 )
                 user = await cur.fetchone()
                 if user is None:
-                    raise UserNotExistsError()
+                    raise NotExistsError()
                 try:
                     password_hasher.verify(user.hashed_password, password)
                     if password_hasher.check_needs_rehash(user.hashed_password):
