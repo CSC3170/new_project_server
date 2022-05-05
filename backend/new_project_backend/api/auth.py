@@ -22,6 +22,17 @@ async def get_current_user(token: str = Depends(oauth2_password_bearer)):
         ) from error
 
 
+async def get_current_user_and_require_admin(token: str = Depends(oauth2_password_bearer)):
+    user = await get_current_user(token)
+    if not user.is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail='Not administrator',
+            headers={'WWW-Authenticate': 'Bearer'},
+        )
+    return user
+
+
 @auth_router.post('/token')
 async def login(form: OAuth2PasswordRequestFormStrict = Depends()):
     try:

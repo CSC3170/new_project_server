@@ -6,6 +6,7 @@ from pydantic import BaseModel
 class UserNoPassword(BaseModel):
     user_id: int
     name: str
+    is_admin: bool
     nickname: Optional[str] = None
     email: Optional[str] = None
     phone: Optional[str] = None

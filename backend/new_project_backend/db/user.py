@@ -28,6 +28,7 @@ class UserDB(DBBase):
                             user_id BIGSERIAL PRIMARY KEY,
                             name TEXT UNIQUE NOT NULL,
                             hashed_password TEXT NOT NULL,
+                            is_admin BOOLEAN DEFAULT FALSE,
                             nickname TEXT,
                             email TEXT UNIQUE,
                             phone TEXT UNIQUE
@@ -54,6 +55,18 @@ class UserDB(DBBase):
                     )
                     user = await cur.fetchone()
                     assert user is not None
+                    if user.user_id == 1:
+                        await cur.execute(
+                            f'''
+                                UPDATE {self._table_name}
+                                SET is_admin = %s
+                                WHERE user_id = %s;
+                            ''',
+                            [
+                                True,
+                                1,
+                            ],
+                        )
                     return user
                 except UniqueViolation as error:
                     raise DuplicateRecordError() from error
