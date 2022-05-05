@@ -69,13 +69,16 @@ class UserDB:
                             '''
                                 UPDATE "user"
                                 SET is_admin = %s
-                                WHERE user_id = %s;
+                                WHERE user_id = %s
+                                RETURNING *;
                             ''',
                             [
                                 True,
                                 1,
                             ],
                         )
+                        user = await cur.fetchone()
+                        assert user is not None
                     return user
                 except UniqueViolation as error:
                     raise DuplicateRecordError() from error
@@ -248,13 +251,16 @@ class UserDB:
                             '''
                                 UPDATE "user"
                                 SET hashed_password = %s
-                                WHERE user_id = %s;
+                                WHERE user_id = %s
+                                RETURNING *;
                             ''',
                             [
                                 user.hashed_password,
                                 user.user_id,
                             ],
                         )
+                        user = await cur.fetchone()
+                        assert user is not None
                     return user
                 except VerificationError as error:
                     raise WrongPasswordError() from error
@@ -282,13 +288,16 @@ class UserDB:
                             '''
                                 UPDATE "user"
                                 SET hashed_password = %s
-                                WHERE user_id = %s;
+                                WHERE user_id = %s
+                                RETURNING *;
                             ''',
                             [
                                 user.hashed_password,
                                 user.user_id,
                             ],
                         )
+                        user = await cur.fetchone()
+                        assert user is not None
                     return user
                 except VerificationError as error:
                     raise WrongPasswordError() from error
