@@ -12,7 +12,7 @@ class UserNoPassword(BaseModel):
 
     @classmethod
     def from_user(cls, user: 'User'):
-        return UserNoPassword(**user.dict(exclude={'hashed_password'}))
+        return cls(**user.dict(exclude={'hashed_password'}))
 
 
 class User(UserNoPassword):
@@ -22,6 +22,14 @@ class User(UserNoPassword):
 class AddingUser(BaseModel):
     name: str
     password: str
+    nickname: Optional[str] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
+
+
+class EditingUser(BaseModel):
+    name: Optional[str] = None
+    password: Optional[str] = None
     nickname: Optional[str] = None
     email: Optional[str] = None
     phone: Optional[str] = None

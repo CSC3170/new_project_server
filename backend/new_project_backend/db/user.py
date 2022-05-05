@@ -5,7 +5,7 @@ from psycopg import AsyncConnection
 from psycopg.errors import UniqueViolation
 from psycopg.rows import class_row
 
-from ..model.user import AddingUser, User
+from ..model.user import AddingUser, EditingUser, User
 from ..utils.password import password_hasher
 from .connection import connection_pool
 
@@ -54,45 +54,92 @@ class UserDB:
                     '''
                 )
 
-    async def insert(self, user: AddingUser):
-        hashed_password = password_hasher.hash(user.password)
+    async def insert(self, adding_user: AddingUser):
         async with self._connection_generator() as conn:
-            async with conn.cursor() as cur:
+            async with conn.cursor(row_factory=class_row(User)) as cur:
+                adding_user_dict = adding_user.dict()
+                password = adding_user_dict.pop('password')
+                adding_user_dict['hashed_password'] = password_hasher.hash(password)
                 try:
                     await cur.execute(
                         f'''
-                            INSERT INTO {self._table_name}(user_id, name, hashed_password, nickname, email, phone)
-                            VALUES(DEFAULT, %s, %s, %s, %s, %s)
-                            RETURNING user_id;
+                            INSERT INTO {self._table_name}(user_id, {', '.join(adding_user_dict.keys())})
+                            VALUES(DEFAULT, {', '.join(['%s'] * len(adding_user_dict))})
+                            RETURNING *;
                         ''',
                         [
-                            user.name,
-                            hashed_password,
-                            user.nickname,
-                            user.email,
-                            user.phone,
+                            *adding_user_dict.values(),
                         ],
                     )
-                    result: Optional[tuple[int]] = await cur.fetchone()
-                    assert result is not None
-                    user_id = result[0]
-                    return User(
-                        user_id=user_id,
-                        name=user.name,
-                        hashed_password=hashed_password,
-                        nickname=user.nickname,
-                        email=user.email,
-                        phone=user.phone,
-                    )
+                    user: Optional[User] = await cur.fetchone()
+                    assert user is not None
+                    return user
                 except UniqueViolation as error:
                     raise DuplicateRecordError() from error
+
+    async def update(self, user_id: int, editing_user: EditingUser):
+        async with self._connection_generator() as conn:
+            async with conn.cursor(row_factory=class_row(User)) as cur:
+                editing_user_dict = editing_user.dict(exclude_unset=True)
+                if not editing_user_dict:
+                    await cur.execute(
+                        f'''
+                            SELECT * FROM {self._table_name}
+                            WHERE user_id = %s;
+                        ''',
+                        [
+                            user_id,
+                        ],
+                    )
+                else:
+                    if 'password' in editing_user_dict:
+                        password = editing_user_dict.pop('password')
+                        editing_user_dict['hashed_password'] = password_hasher.hash(password)
+                    try:
+                        await cur.execute(
+                            f'''
+                                UPDATE {self._table_name}
+                                SET {', '.join([f'{key} = %s' for key in editing_user_dict.keys()])}
+                                WHERE user_id = %s
+                                RETURNING *;
+                            ''',
+                            [
+                                *editing_user_dict.values(),
+                                user_id,
+                            ],
+                        )
+                    except UniqueViolation as error:
+                        raise DuplicateRecordError() from error
+                user: Optional[User] = await cur.fetchone()
+                if user is None:
+                    raise UserNotExistsError()
+                return user
+
+    async def delete(self, user_id: int):
+        async with self._connection_generator() as conn:
+            async with conn.cursor() as cur:
+                await cur.execute(
+                    f'''
+                        DELETE FROM {self._table_name}
+                        WHERE user_id = %s
+                        RETURNING *;
+                    ''',
+                    [
+                        user_id,
+                    ],
+                )
+                user: Optional[User] = await cur.fetchone()
+                if user is None:
+                    raise UserNotExistsError()
+                return user
 
     async def query_by_id(self, user_id: int):
         async with self._connection_generator() as conn:
             async with conn.cursor(row_factory=class_row(User)) as cur:
                 await cur.execute(
                     f'''
-                        SELECT * FROM {self._table_name} WHERE user_id = %s;
+                        SELECT * FROM {self._table_name}
+                        WHERE user_id = %s;
                     ''',
                     [
                         user_id,
@@ -108,7 +155,8 @@ class UserDB:
             async with conn.cursor(row_factory=class_row(User)) as cur:
                 await cur.execute(
                     f'''
-                        SELECT * FROM {self._table_name} WHERE name = %s;
+                        SELECT * FROM {self._table_name}
+                        WHERE name = %s;
                     ''',
                     [
                         name,
@@ -124,7 +172,8 @@ class UserDB:
             async with conn.cursor(row_factory=class_row(User)) as cur:
                 await cur.execute(
                     f'''
-                        SELECT * FROM {self._table_name} WHERE user_id = %s;
+                        SELECT * FROM {self._table_name}
+                        WHERE user_id = %s;
                     ''',
                     [
                         user_id,
@@ -138,7 +187,9 @@ class UserDB:
                         user.hashed_password = password_hasher.hash(password)
                         await cur.execute(
                             f'''
-                                UPDATE {self._table_name} SET hashed_password = %s WHERE id = %s;
+                                UPDATE {self._table_name}
+                                SET hashed_password = %s
+                                WHERE id = %s;
                             ''',
                             [
                                 user.hashed_password,
@@ -154,7 +205,8 @@ class UserDB:
             async with conn.cursor(row_factory=class_row(User)) as cur:
                 await cur.execute(
                     f'''
-                        SELECT * FROM {self._table_name} WHERE name = %s;
+                        SELECT * FROM {self._table_name}
+                        WHERE name = %s;
                     ''',
                     [
                         name,
@@ -169,7 +221,9 @@ class UserDB:
                         user.hashed_password = password_hasher.hash(password)
                         await cur.execute(
                             f'''
-                                UPDATE {self._table_name} SET hashed_password = %s WHERE id = %s;
+                                UPDATE {self._table_name}
+                                SET hashed_password = %s
+                                WHERE id = %s;
                             ''',
                             [
                                 user.hashed_password,
