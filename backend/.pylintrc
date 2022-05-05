@@ -1,5 +1,8 @@
 [MESSAGES CONTROL]
-disable=C0103, C0114, C0115, C0116, R0902, R0913
+disable=C0103, C0114, C0115, C0116, R0801, R0902, R0903, R0913
+
+[MASTER]
+extension-pkg-whitelist=pydantic
 
 [FORMAT]
 max-line-length=120
