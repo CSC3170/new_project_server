@@ -21,6 +21,30 @@ async def query_words(book_name: str, _: User = Depends(get_current_user)):
         ) from error
 
 
+@word_router.get('/word/{book_name}/{word_id}')
+async def query_word(book_name: str, word_id: int, _: User = Depends(get_current_user)):
+    try:
+        word = await word_db.query_by_book_name_and_word_id(book_name, word_id)
+        return word
+    except NotExistsError as error:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f'Incorrect {error.name}',
+        ) from error
+
+
+@word_router.get('/word-by-order/{book_name}/{order}')
+async def query_word(book_name: str, order: int, _: User = Depends(get_current_user)):
+    try:
+        word = await word_db.query_by_book_name_and_order(book_name, order)
+        return word
+    except NotExistsError as error:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f'Incorrect {error.name}',
+        ) from error
+
+
 @word_router.post('/word/{book_name}')
 async def add_word(book_name: str, adding_word: AddingWord, _: User = Depends(get_current_user_and_require_admin)):
     try:

@@ -527,5 +527,77 @@ class WordDB:
                     raise NotExistsError('word')
                 return word
 
+    async def query_by_book_id_and_order(self, book_id: int, order: int):
+        async with self._connection_generator() as conn:
+            async with conn.cursor() as cur:
+                cur.row_factory = class_row(Book)
+                await cur.execute(
+                    '''
+                        SELECT * FROM "book"
+                        WHERE "book_id" = %s;
+                    ''',
+                    [
+                        book_id,
+                    ],
+                )
+                book = await cur.fetchone()
+                if book is None:
+                    raise NotExistsError('book')
+                if not 0 <= order < book.words_count:
+                    raise NotExistsError('word')
+                cur.row_factory = class_row(Word)
+                await cur.execute(
+                    '''
+                        SELECT * FROM "word"
+                        WHERE "book_id" = %s
+                        ORDER BY "word_id"
+                        LIMIT 1 OFFSET %s;
+                    ''',
+                    [
+                        book.book_id,
+                        order,
+                    ],
+                )
+                word = await cur.fetchone()
+                if word is None:
+                    raise NotExistsError('word')
+                return word
+
+    async def query_by_book_name_and_order(self, book_name: str, order: int):
+        async with self._connection_generator() as conn:
+            async with conn.cursor() as cur:
+                cur.row_factory = class_row(Book)
+                await cur.execute(
+                    '''
+                        SELECT * FROM "book"
+                        WHERE "name" = %s;
+                    ''',
+                    [
+                        book_name,
+                    ],
+                )
+                book = await cur.fetchone()
+                if book is None:
+                    raise NotExistsError('book')
+                if not 0 <= order < book.words_count:
+                    raise NotExistsError('word')
+                cur.row_factory = class_row(Word)
+                await cur.execute(
+                    '''
+                        SELECT * FROM "word"
+                        WHERE "book_id" = %s
+                        ORDER BY "word_id"
+                        LIMIT 1 OFFSET %s;
+                    ''',
+                    [
+                        book.book_id,
+                        order,
+                    ],
+                )
+                word = await cur.fetchone()
+                if word is None:
+                    raise NotExistsError('word')
+                return word
+
 
 word_db = WordDB(connection_pool.connection)
