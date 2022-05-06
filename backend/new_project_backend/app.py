@@ -3,7 +3,6 @@ from fastapi import FastAPI
 from .api.auth import auth_router
 from .api.book import book_router
 from .api.daily_plan import daily_plan_router
-from .api.test import test_router
 from .api.user import user_router
 from .api.word import word_router
 from .db.book import book_db
@@ -14,7 +13,6 @@ from .db.word import word_db
 from .utils.key import private_key
 
 app = FastAPI()
-app.include_router(test_router, prefix='/api')
 app.include_router(auth_router, prefix='/api')
 app.include_router(user_router, prefix='/api')
 app.include_router(book_router, prefix='/api')
