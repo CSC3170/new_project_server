@@ -118,7 +118,7 @@ class UserDB:
                         raise DuplicateRecordError() from error
                 user = await cur.fetchone()
                 if user is None:
-                    raise NotExistsError()
+                    raise NotExistsError('user')
                 return user
 
     async def update_by_name(self, name: str, editing_user: EditingUser):
@@ -156,7 +156,7 @@ class UserDB:
                         raise DuplicateRecordError() from error
                 user = await cur.fetchone()
                 if user is None:
-                    raise NotExistsError()
+                    raise NotExistsError('user')
                 return user
 
     async def delete_by_user_id(self, user_id: int):
@@ -174,7 +174,7 @@ class UserDB:
                 )
                 user = await cur.fetchone()
                 if user is None:
-                    raise NotExistsError()
+                    raise NotExistsError('user')
                 return user
 
     async def delete_by_name(self, name: str):
@@ -192,7 +192,7 @@ class UserDB:
                 )
                 user = await cur.fetchone()
                 if user is None:
-                    raise NotExistsError()
+                    raise NotExistsError('user')
                 return user
 
     async def query_by_user_id(self, user_id: int):
@@ -209,7 +209,7 @@ class UserDB:
                 )
                 user = await cur.fetchone()
                 if user is None:
-                    raise NotExistsError()
+                    raise NotExistsError('user')
                 return user
 
     async def query_by_name(self, name: str):
@@ -226,7 +226,7 @@ class UserDB:
                 )
                 user = await cur.fetchone()
                 if user is None:
-                    raise NotExistsError()
+                    raise NotExistsError('user')
                 return user
 
     async def verify_user_id_and_password(self, user_id: int, password: str):
@@ -243,7 +243,7 @@ class UserDB:
                 )
                 user = await cur.fetchone()
                 if user is None:
-                    raise NotExistsError()
+                    raise NotExistsError('user')
                 try:
                     if password_hasher.check_needs_rehash(user.hashed_password):
                         user.hashed_password = password_hasher.hash(password)
@@ -279,7 +279,7 @@ class UserDB:
                 )
                 user = await cur.fetchone()
                 if user is None:
-                    raise NotExistsError()
+                    raise NotExistsError('user')
                 try:
                     password_hasher.verify(user.hashed_password, password)
                     if password_hasher.check_needs_rehash(user.hashed_password):

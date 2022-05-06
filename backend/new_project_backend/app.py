@@ -4,9 +4,11 @@ from .api.auth import auth_router
 from .api.book import book_router
 from .api.test import test_router
 from .api.user import user_router
+from .api.word import word_router
 from .db.book import book_db
 from .db.connection import connection_pool
 from .db.user import user_db
+from .db.word import word_db
 from .utils.key import private_key
 
 app = FastAPI()
@@ -14,15 +16,18 @@ app.include_router(test_router, prefix='/api')
 app.include_router(auth_router, prefix='/api')
 app.include_router(user_router, prefix='/api')
 app.include_router(book_router, prefix='/api')
+app.include_router(word_router, prefix='/api')
 
 
 @app.on_event('startup')
 async def startup():
     await connection_pool.open()
-    await user_db.drop()
+    await word_db.drop()
     await book_db.drop()
+    await user_db.drop()
     await user_db.create()
     await book_db.create()
+    await word_db.create()
     private_key.initialize()
 
 

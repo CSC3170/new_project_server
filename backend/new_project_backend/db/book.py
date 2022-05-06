@@ -24,6 +24,21 @@ class BookDB:
                             description TEXT,
                             word_count BIGINT NOT NULL
                         );
+
+                        CREATE OR REPLACE FUNCTION make_book_seq()
+                        RETURNS TRIGGER
+                        LANGUAGE PLPGSQL
+                        AS $$
+                        BEGIN
+                            EXECUTE 'CREATE SEQUENCE IF NOT EXISTS book_seq_' || NEW.book_id || ' '
+                                 || 'OWNED BY book.book_id';
+                            return NEW;
+                        END
+                        $$;
+
+                        CREATE OR REPLACE TRIGGER make_book_seq
+                        AFTER INSERT ON book
+                        FOR EACH ROW EXECUTE PROCEDURE make_book_seq();
                     '''
                 )
 
@@ -33,6 +48,7 @@ class BookDB:
                 await cur.execute(
                     '''
                         DROP TABLE IF EXISTS book;
+                        DROP FUNCTION IF EXISTS make_book_seq;
                     '''
                 )
 
@@ -89,7 +105,7 @@ class BookDB:
                         raise DuplicateRecordError() from error
                 book = await cur.fetchone()
                 if book is None:
-                    raise NotExistsError()
+                    raise NotExistsError('book')
                 return book
 
     async def update_by_name(self, name: str, editing_book: EditingBook):
@@ -124,7 +140,7 @@ class BookDB:
                         raise DuplicateRecordError() from error
                 book = await cur.fetchone()
                 if book is None:
-                    raise NotExistsError()
+                    raise NotExistsError('book')
                 return book
 
     async def delete_by_book_id(self, book_id: int):
@@ -142,7 +158,7 @@ class BookDB:
                 )
                 book = await cur.fetchone()
                 if book is None:
-                    raise NotExistsError()
+                    raise NotExistsError('book')
                 return book
 
     async def delete_by_name(self, name: str):
@@ -160,7 +176,7 @@ class BookDB:
                 )
                 book = await cur.fetchone()
                 if book is None:
-                    raise NotExistsError()
+                    raise NotExistsError('book')
                 return book
 
     async def query(self):
@@ -188,7 +204,7 @@ class BookDB:
                 )
                 book = await cur.fetchone()
                 if book is None:
-                    raise NotExistsError()
+                    raise NotExistsError('book')
                 return book
 
     async def query_by_name(self, name: str):
@@ -205,7 +221,7 @@ class BookDB:
                 )
                 book = await cur.fetchone()
                 if book is None:
-                    raise NotExistsError()
+                    raise NotExistsError('book')
                 return book
 
 

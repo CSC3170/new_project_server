@@ -15,15 +15,15 @@ async def query_books(user: User = Depends(get_current_user)):
     return books
 
 
-@book_router.get('/book/{name}')
-async def query_book(name: str, user: User = Depends(get_current_user)):
+@book_router.get('/book/{book_name}')
+async def query_book(book_name: str, user: User = Depends(get_current_user)):
     try:
-        book = await book_db.query_by_name(name)
+        book = await book_db.query_by_name(book_name)
         return book
     except NotExistsError as error:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail='Incorrect book',
+            detail=f'Incorrect {error.name}',
         ) from error
 
 
@@ -39,11 +39,13 @@ async def add_book(adding_book: AddingBook, user: User = Depends(get_current_use
         ) from error
 
 
-@book_router.patch('/book/{name}')
-async def edit_book(name: str, editing_book: EditingBook, user: User = Depends(get_current_user_and_require_admin)):
+@book_router.patch('/book/{book_name}')
+async def edit_book(
+    book_name: str, editing_book: EditingBook, user: User = Depends(get_current_user_and_require_admin)
+):
     try:
-        new_book = await book_db.update_by_name(name, editing_book)
-        return new_book
+        book = await book_db.update_by_name(book_name, editing_book)
+        return book
     except DuplicateRecordError as error:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -52,17 +54,17 @@ async def edit_book(name: str, editing_book: EditingBook, user: User = Depends(g
     except NotExistsError as error:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail='Incorrect book',
+            detail=f'Incorrect {error.name}',
         ) from error
 
 
-@book_router.delete('/book/{name}')
-async def delete_book(name: str, user: User = Depends(get_current_user_and_require_admin)):
+@book_router.delete('/book/{book_name}')
+async def delete_book(book_name: str, user: User = Depends(get_current_user_and_require_admin)):
     try:
-        new_book = await book_db.delete_by_name(name)
-        return new_book
+        book = await book_db.delete_by_name(book_name)
+        return book
     except NotExistsError as error:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail='Incorrect book',
+            detail=f'Incorrect {error.name}',
         ) from error
