@@ -24,6 +24,29 @@ const config: Configuration = {
   module: {
     rules: [
       {
+        test: /\.less$/i,
+        use: [{
+          loader: 'style-loader',
+        }, {
+          loader: 'css-loader',
+        }, {
+          loader: 'less-loader',
+          options: {
+            lessOptions: {
+              javascriptEnabled: true,
+            }
+          },
+        }]
+      },
+      {
+        test: /\.css$/i,
+        use: [{
+          loader: 'style-loader',
+        },{
+          loader: 'css-loader',
+        }]
+      },
+      {
         test: /\.(ts|js)x?$/i,
         exclude: /node_modules/,
         use: {
