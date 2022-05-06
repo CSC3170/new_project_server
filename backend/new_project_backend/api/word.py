@@ -34,7 +34,7 @@ async def query_word(book_name: str, word_id: int, _: User = Depends(get_current
 
 
 @word_router.get('/word-by-order/{book_name}/{order}')
-async def query_word(book_name: str, order: int, _: User = Depends(get_current_user_and_require_admin)):
+async def query_word_by_order(book_name: str, order: int, _: User = Depends(get_current_user_and_require_admin)):
     try:
         word = await word_db.query_by_book_name_and_order(book_name, order)
         return word
