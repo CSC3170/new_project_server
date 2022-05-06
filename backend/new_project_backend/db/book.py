@@ -60,11 +60,9 @@ class BookDB:
                     await cur.execute(
                         f'''
                             INSERT INTO "book"(
-                                "book_id",
                                 {', '.join([f'"{key}"' for key in adding_book_dict.keys()])}
                             )
                             VALUES(
-                                DEFAULT,
                                 {', '.join(['%s'] * len(adding_book_dict))}
                             )
                             RETURNING *;

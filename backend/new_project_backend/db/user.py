@@ -55,11 +55,9 @@ class UserDB:
                     await cur.execute(
                         f'''
                             INSERT INTO "user"(
-                                "user_id",
                                 {', '.join([f'"{key}"' for key in adding_user_dict.keys()])}
                             )
                             VALUES(
-                                DEFAULT,
                                 {', '.join(['%s'] * len(adding_user_dict))}
                             )
                             RETURNING *;

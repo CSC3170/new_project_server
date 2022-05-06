@@ -108,12 +108,10 @@ class WordDB:
                         f'''
                             INSERT INTO word(
                                 book_id,
-                                word_id,
                                 {', '.join([f'"{key}"' for key in adding_word_dict.keys()])}
                             )
                             VALUES(
                                 %s,
-                                DEFAULT,
                                 {', '.join(['%s'] * len(adding_word_dict))}
                             )
                             RETURNING *;
@@ -152,12 +150,10 @@ class WordDB:
                         f'''
                             INSERT INTO "word"(
                                 "book_id",
-                                "word_id",
                                 {', '.join([f'"{key}"' for key in adding_word_dict.keys()])}
                             )
                             VALUES(
                                 %s,
-                                DEFAULT,
                                 {', '.join(['%s'] * len(adding_word_dict))}
                             )
                             RETURNING *;
