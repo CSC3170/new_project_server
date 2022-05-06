@@ -22,7 +22,7 @@ class BookDB:
                             "book_id" BIGSERIAL PRIMARY KEY,
                             "name" TEXT UNIQUE NOT NULL,
                             "description" TEXT,
-                            "word_count" BIGINT NOT NULL
+                            "words_count" BIGINT DEFAULT 0
                         );
 
                         CREATE OR REPLACE FUNCTION "make_book_seq"()

@@ -40,6 +40,38 @@ class WordDB:
                         CREATE OR REPLACE TRIGGER "fill_in_word_seq"
                         BEFORE INSERT ON "word"
                         FOR EACH ROW EXECUTE PROCEDURE "fill_in_word_seq"();
+
+                        CREATE OR REPLACE FUNCTION "update_words_count_after_insert"()
+                        RETURNS TRIGGER
+                        LANGUAGE PLPGSQL
+                        AS $$
+                        BEGIN
+                            UPDATE "book"
+                            SET "words_count" = "words_count" + 1
+                            WHERE "book_id" = NEW."book_id";
+                            RETURN NEW;
+                        END
+                        $$;
+
+                        CREATE OR REPLACE TRIGGER "update_words_count_after_insert"
+                        AFTER INSERT ON "word"
+                        FOR EACH ROW EXECUTE procedure "update_words_count_after_insert"();
+
+                        CREATE OR REPLACE FUNCTION "update_words_count_after_delete"()
+                        RETURNS TRIGGER
+                        LANGUAGE PLPGSQL
+                        AS $$
+                        BEGIN
+                            UPDATE "book"
+                            SET "words_count" = "words_count" - 1
+                            WHERE "book_id" = OLD."book_id";
+                            RETURN OLD;
+                        END
+                        $$;
+
+                        CREATE OR REPLACE TRIGGER "update_words_count_after_delete"
+                        AFTER DELETE ON "word"
+                        FOR EACH ROW EXECUTE procedure "update_words_count_after_delete"();
                     '''
                 )
 
