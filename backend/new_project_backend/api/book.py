@@ -10,13 +10,13 @@ book_router = APIRouter()
 
 
 @book_router.get('/books')
-async def query_books(user: User = Depends(get_current_user)):
+async def query_books(_: User = Depends(get_current_user)):
     books = await book_db.query()
     return books
 
 
 @book_router.get('/book/{book_name}')
-async def query_book(book_name: str, user: User = Depends(get_current_user)):
+async def query_book(book_name: str, _: User = Depends(get_current_user)):
     try:
         book = await book_db.query_by_name(book_name)
         return book
@@ -28,7 +28,7 @@ async def query_book(book_name: str, user: User = Depends(get_current_user)):
 
 
 @book_router.post('/book')
-async def add_book(adding_book: AddingBook, user: User = Depends(get_current_user_and_require_admin)):
+async def add_book(adding_book: AddingBook, _: User = Depends(get_current_user_and_require_admin)):
     try:
         book = await book_db.insert(adding_book)
         return book
@@ -40,9 +40,7 @@ async def add_book(adding_book: AddingBook, user: User = Depends(get_current_use
 
 
 @book_router.patch('/book/{book_name}')
-async def edit_book(
-    book_name: str, editing_book: EditingBook, user: User = Depends(get_current_user_and_require_admin)
-):
+async def edit_book(book_name: str, editing_book: EditingBook, _: User = Depends(get_current_user_and_require_admin)):
     try:
         book = await book_db.update_by_name(book_name, editing_book)
         return book
@@ -59,7 +57,7 @@ async def edit_book(
 
 
 @book_router.delete('/book/{book_name}')
-async def delete_book(book_name: str, user: User = Depends(get_current_user_and_require_admin)):
+async def delete_book(book_name: str, _: User = Depends(get_current_user_and_require_admin)):
     try:
         book = await book_db.delete_by_name(book_name)
         return book

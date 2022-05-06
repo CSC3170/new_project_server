@@ -10,7 +10,7 @@ word_router = APIRouter()
 
 
 @word_router.get('/words/{book_name}')
-async def query_words(book_name: str, user: User = Depends(get_current_user)):
+async def query_words(book_name: str, _: User = Depends(get_current_user)):
     try:
         words = await word_db.query_by_book_name(book_name)
         return words
@@ -22,7 +22,7 @@ async def query_words(book_name: str, user: User = Depends(get_current_user)):
 
 
 @word_router.post('/word/{book_name}')
-async def add_word(book_name: str, adding_word: AddingWord, user: User = Depends(get_current_user_and_require_admin)):
+async def add_word(book_name: str, adding_word: AddingWord, _: User = Depends(get_current_user_and_require_admin)):
     try:
         word = await word_db.insert_by_book_name(book_name, adding_word)
         return word
@@ -40,7 +40,7 @@ async def add_word(book_name: str, adding_word: AddingWord, user: User = Depends
 
 @word_router.patch('/word/{book_name}/{word_id}')
 async def edit_word(
-    book_name: str, word_id: int, editing_word: EditingWord, user: User = Depends(get_current_user_and_require_admin)
+    book_name: str, word_id: int, editing_word: EditingWord, _: User = Depends(get_current_user_and_require_admin)
 ):
     try:
         word = await word_db.update_by_book_name_and_word_id(book_name, word_id, editing_word)
@@ -58,7 +58,7 @@ async def edit_word(
 
 
 @word_router.delete('/word/{book_name}/{word_id}')
-async def delete_word(book_name: str, word_id: int, user: User = Depends(get_current_user_and_require_admin)):
+async def delete_word(book_name: str, word_id: int, _: User = Depends(get_current_user_and_require_admin)):
     try:
         word = await word_db.delete_by_book_name_and_word_id(book_name, word_id)
         return word
