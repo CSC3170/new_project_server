@@ -32,7 +32,7 @@ class BookDB:
             async with conn.cursor() as cur:
                 await cur.execute(
                     '''
-                        DROP TABLE book;
+                        DROP TABLE IF EXISTS book;
                     '''
                 )
 

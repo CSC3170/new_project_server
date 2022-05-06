@@ -41,7 +41,7 @@ class UserDB:
             async with conn.cursor() as cur:
                 await cur.execute(
                     '''
-                        DROP TABLE "user";
+                        DROP TABLE IF EXISTS "user";
                     '''
                 )
 
