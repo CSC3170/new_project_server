@@ -25,13 +25,13 @@ class UserDB:
                 await cur.execute(
                     '''
                         CREATE TABLE IF NOT EXISTS "user"(
-                            user_id BIGSERIAL PRIMARY KEY,
-                            name TEXT UNIQUE NOT NULL,
-                            hashed_password TEXT NOT NULL,
-                            is_admin BOOLEAN DEFAULT FALSE,
-                            nickname TEXT,
-                            email TEXT UNIQUE,
-                            phone TEXT UNIQUE
+                            "user_id" BIGSERIAL PRIMARY KEY,
+                            "name" TEXT UNIQUE NOT NULL,
+                            "hashed_password" TEXT NOT NULL,
+                            "is_admin" BOOLEAN DEFAULT FALSE,
+                            "nickname" TEXT,
+                            "email" TEXT UNIQUE,
+                            "phone" TEXT UNIQUE
                         );
                     '''
                 )
@@ -54,8 +54,14 @@ class UserDB:
                 try:
                     await cur.execute(
                         f'''
-                            INSERT INTO "user"(user_id, {', '.join(adding_user_dict.keys())})
-                            VALUES(DEFAULT, {', '.join(['%s'] * len(adding_user_dict))})
+                            INSERT INTO "user"(
+                                "user_id",
+                                {', '.join([f'"{key}"' for key in adding_user_dict.keys()])}
+                            )
+                            VALUES(
+                                DEFAULT,
+                                {', '.join(['%s'] * len(adding_user_dict))}
+                            )
                             RETURNING *;
                         ''',
                         [
@@ -68,8 +74,8 @@ class UserDB:
                         await cur.execute(
                             '''
                                 UPDATE "user"
-                                SET is_admin = %s
-                                WHERE user_id = %s
+                                SET "is_admin" = %s
+                                WHERE "user_id" = %s
                                 RETURNING *;
                             ''',
                             [
@@ -91,7 +97,7 @@ class UserDB:
                     await cur.execute(
                         '''
                             SELECT * FROM "user"
-                            WHERE user_id = %s;
+                            WHERE "user_id" = %s;
                         ''',
                         [
                             user_id,
@@ -105,8 +111,8 @@ class UserDB:
                         await cur.execute(
                             f'''
                                 UPDATE "user"
-                                SET {', '.join([f'{key} = %s' for key in editing_user_dict.keys()])}
-                                WHERE user_id = %s
+                                SET {', '.join([f'"{key}" = %s' for key in editing_user_dict.keys()])}
+                                WHERE "user_id" = %s
                                 RETURNING *;
                             ''',
                             [
@@ -129,7 +135,7 @@ class UserDB:
                     await cur.execute(
                         '''
                             SELECT * FROM "user"
-                            WHERE name = %s;
+                            WHERE "name" = %s;
                         ''',
                         [
                             name,
@@ -143,8 +149,8 @@ class UserDB:
                         await cur.execute(
                             f'''
                                 UPDATE "user"
-                                SET {', '.join([f'{key} = %s' for key in editing_user_dict.keys()])}
-                                WHERE name = %s
+                                SET {', '.join([f'"{key}" = %s' for key in editing_user_dict.keys()])}
+                                WHERE "name" = %s
                                 RETURNING *;
                             ''',
                             [
@@ -165,7 +171,7 @@ class UserDB:
                 await cur.execute(
                     '''
                         DELETE FROM "user"
-                        WHERE user_id = %s
+                        WHERE "user_id" = %s
                         RETURNING *;
                     ''',
                     [
@@ -183,7 +189,7 @@ class UserDB:
                 await cur.execute(
                     '''
                         DELETE FROM "user"
-                        WHERE name = %s
+                        WHERE "name" = %s
                         RETURNING *;
                     ''',
                     [
@@ -201,7 +207,7 @@ class UserDB:
                 await cur.execute(
                     '''
                         SELECT * FROM "user"
-                        WHERE user_id = %s;
+                        WHERE "user_id" = %s;
                     ''',
                     [
                         user_id,
@@ -218,7 +224,7 @@ class UserDB:
                 await cur.execute(
                     '''
                         SELECT * FROM "user"
-                        WHERE name = %s;
+                        WHERE "name" = %s;
                     ''',
                     [
                         name,
@@ -235,7 +241,7 @@ class UserDB:
                 await cur.execute(
                     '''
                         SELECT * FROM "user"
-                        WHERE user_id = %s;
+                        WHERE "user_id" = %s;
                     ''',
                     [
                         user_id,
@@ -250,8 +256,8 @@ class UserDB:
                         await cur.execute(
                             '''
                                 UPDATE "user"
-                                SET hashed_password = %s
-                                WHERE user_id = %s
+                                SET "hashed_password" = %s
+                                WHERE "user_id" = %s
                                 RETURNING *;
                             ''',
                             [
@@ -271,7 +277,7 @@ class UserDB:
                 await cur.execute(
                     '''
                         SELECT * FROM "user"
-                        WHERE name = %s;
+                        WHERE "name" = %s;
                     ''',
                     [
                         name,
@@ -287,8 +293,8 @@ class UserDB:
                         await cur.execute(
                             '''
                                 UPDATE "user"
-                                SET hashed_password = %s
-                                WHERE user_id = %s
+                                SET "hashed_password" = %s
+                                WHERE "user_id" = %s
                                 RETURNING *;
                             ''',
                             [

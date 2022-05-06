@@ -18,27 +18,27 @@ class BookDB:
             async with conn.cursor() as cur:
                 await cur.execute(
                     '''
-                        CREATE TABLE IF NOT EXISTS book(
-                            book_id BIGSERIAL PRIMARY KEY,
-                            name TEXT UNIQUE NOT NULL,
-                            description TEXT,
-                            word_count BIGINT NOT NULL
+                        CREATE TABLE IF NOT EXISTS "book"(
+                            "book_id" BIGSERIAL PRIMARY KEY,
+                            "name" TEXT UNIQUE NOT NULL,
+                            "description" TEXT,
+                            "word_count" BIGINT NOT NULL
                         );
 
-                        CREATE OR REPLACE FUNCTION make_book_seq()
+                        CREATE OR REPLACE FUNCTION "make_book_seq"()
                         RETURNS TRIGGER
                         LANGUAGE PLPGSQL
                         AS $$
                         BEGIN
-                            EXECUTE 'CREATE SEQUENCE IF NOT EXISTS book_seq_' || NEW.book_id || ' '
-                                 || 'OWNED BY book.book_id';
+                            EXECUTE 'CREATE SEQUENCE IF NOT EXISTS "book_seq_' || NEW.book_id || '" '
+                                 || 'OWNED BY "book"."book_id"';
                             return NEW;
                         END
                         $$;
 
-                        CREATE OR REPLACE TRIGGER make_book_seq
-                        AFTER INSERT ON book
-                        FOR EACH ROW EXECUTE PROCEDURE make_book_seq();
+                        CREATE OR REPLACE TRIGGER "make_book_seq"
+                        AFTER INSERT ON "book"
+                        FOR EACH ROW EXECUTE PROCEDURE "make_book_seq"();
                     '''
                 )
 
@@ -47,8 +47,8 @@ class BookDB:
             async with conn.cursor() as cur:
                 await cur.execute(
                     '''
-                        DROP TABLE IF EXISTS book;
-                        DROP FUNCTION IF EXISTS make_book_seq;
+                        DROP TABLE IF EXISTS "book";
+                        DROP FUNCTION IF EXISTS "make_book_seq";
                     '''
                 )
 
@@ -59,8 +59,14 @@ class BookDB:
                 try:
                     await cur.execute(
                         f'''
-                            INSERT INTO book(book_id, {', '.join(adding_book_dict.keys())})
-                            VALUES(DEFAULT, {', '.join(['%s'] * len(adding_book_dict))})
+                            INSERT INTO "book"(
+                                "book_id",
+                                {', '.join([f'"{key}"' for key in adding_book_dict.keys()])}
+                            )
+                            VALUES(
+                                DEFAULT,
+                                {', '.join(['%s'] * len(adding_book_dict))}
+                            )
                             RETURNING *;
                         ''',
                         [
@@ -80,8 +86,8 @@ class BookDB:
                 if not editing_book_dict:
                     await cur.execute(
                         '''
-                            SELECT * FROM book
-                            WHERE book_id = %s;
+                            SELECT * FROM "book"
+                            WHERE "book_id" = %s;
                         ''',
                         [
                             book_id,
@@ -91,9 +97,9 @@ class BookDB:
                     try:
                         await cur.execute(
                             f'''
-                                UPDATE book
-                                SET {', '.join([f'{key} = %s' for key in editing_book_dict.keys()])}
-                                WHERE book_id = %s
+                                UPDATE "book"
+                                SET {', '.join([f'"{key}" = %s' for key in editing_book_dict.keys()])}
+                                WHERE "book_id" = %s
                                 RETURNING *;
                             ''',
                             [
@@ -115,8 +121,8 @@ class BookDB:
                 if not editing_book_dict:
                     await cur.execute(
                         '''
-                            SELECT * FROM book
-                            WHERE name = %s;
+                            SELECT * FROM "book"
+                            WHERE "name" = %s;
                         ''',
                         [
                             name,
@@ -126,9 +132,9 @@ class BookDB:
                     try:
                         await cur.execute(
                             f'''
-                                UPDATE book
-                                SET {', '.join([f'{key} = %s' for key in editing_book_dict.keys()])}
-                                WHERE name = %s
+                                UPDATE "book"
+                                SET {', '.join([f'"{key}" = %s' for key in editing_book_dict.keys()])}
+                                WHERE "name" = %s
                                 RETURNING *;
                             ''',
                             [
@@ -148,8 +154,8 @@ class BookDB:
             async with conn.cursor(row_factory=class_row(Book)) as cur:
                 await cur.execute(
                     '''
-                        DELETE FROM book
-                        WHERE book_id = %s
+                        DELETE FROM "book"
+                        WHERE "book_id" = %s
                         RETURNING *;
                     ''',
                     [
@@ -166,8 +172,8 @@ class BookDB:
             async with conn.cursor(row_factory=class_row(Book)) as cur:
                 await cur.execute(
                     '''
-                        DELETE FROM book
-                        WHERE name = %s
+                        DELETE FROM "book"
+                        WHERE "name" = %s
                         RETURNING *;
                     ''',
                     [
@@ -184,7 +190,7 @@ class BookDB:
             async with conn.cursor(row_factory=class_row(Book)) as cur:
                 await cur.execute(
                     '''
-                        SELECT * FROM book;
+                        SELECT * FROM "book";
                     '''
                 )
                 books = await cur.fetchall()
@@ -195,8 +201,8 @@ class BookDB:
             async with conn.cursor(row_factory=class_row(Book)) as cur:
                 await cur.execute(
                     '''
-                        SELECT * FROM book
-                        WHERE book_id = %s;
+                        SELECT * FROM "book"
+                        WHERE "book_id" = %s;
                     ''',
                     [
                         book_id,
@@ -212,8 +218,8 @@ class BookDB:
             async with conn.cursor(row_factory=class_row(Book)) as cur:
                 await cur.execute(
                     '''
-                        SELECT * FROM book
-                        WHERE name = %s;
+                        SELECT * FROM "book"
+                        WHERE "name" = %s;
                     ''',
                     [
                         name,

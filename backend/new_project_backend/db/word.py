@@ -19,27 +19,27 @@ class WordDB:
             async with conn.cursor() as cur:
                 await cur.execute(
                     '''
-                        CREATE TABLE IF NOT EXISTS word(
-                            book_id BIGINT NOT NULL REFERENCES book(book_id),
-                            word_id BIGINT NOT NULL,
-                            spelling TEXT NOT NULL,
-                            translation TEXT,
-                            PRIMARY KEY (book_id, word_id)
+                        CREATE TABLE IF NOT EXISTS "word"(
+                            "book_id" BIGINT NOT NULL REFERENCES "book"("book_id"),
+                            "word_id" BIGINT NOT NULL,
+                            "spelling" TEXT NOT NULL,
+                            "translation" TEXT,
+                            PRIMARY KEY ("book_id", "word_id")
                         );
 
-                        CREATE OR REPLACE FUNCTION fill_in_word_seq()
+                        CREATE OR REPLACE FUNCTION "fill_in_word_seq"()
                         RETURNS TRIGGER
                         LANGUAGE PLPGSQL
                         AS $$
                         BEGIN
-                            NEW.word_id := nextval('book_seq_' || NEW.book_id);
+                            NEW."word_id" := nextval('"book_seq_' || NEW.book_id || '"');
                             RETURN NEW;
                         END
                         $$;
 
-                        CREATE OR REPLACE TRIGGER fill_in_word_seq
-                        BEFORE INSERT ON word
-                        FOR EACH ROW EXECUTE PROCEDURE fill_in_word_seq();
+                        CREATE OR REPLACE TRIGGER "fill_in_word_seq"
+                        BEFORE INSERT ON "word"
+                        FOR EACH ROW EXECUTE PROCEDURE "fill_in_word_seq"();
                     '''
                 )
 
@@ -48,8 +48,8 @@ class WordDB:
             async with conn.cursor() as cur:
                 await cur.execute(
                     '''
-                        DROP TABLE IF EXISTS word;
-                        DROP FUNCTION IF EXISTS fill_in_word_seq;
+                        DROP TABLE IF EXISTS "word";
+                        DROP FUNCTION IF EXISTS "fill_in_word_seq";
                     '''
                 )
 
@@ -59,8 +59,8 @@ class WordDB:
                 cur.row_factory = class_row(Book)
                 await cur.execute(
                     '''
-                        SELECT * FROM book
-                        WHERE book_id = %s;
+                        SELECT * FROM "book"
+                        WHERE "book_id" = %s;
                     ''',
                     [
                         book_id,
@@ -74,8 +74,16 @@ class WordDB:
                 try:
                     await cur.execute(
                         f'''
-                            INSERT INTO word(book_id, word_id, {', '.join(adding_word_dict.keys())})
-                            VALUES(%s, DEFAULT, {', '.join(['%s'] * len(adding_word_dict))})
+                            INSERT INTO word(
+                                book_id,
+                                word_id,
+                                {', '.join([f'"{key}"' for key in adding_word_dict.keys()])}
+                            )
+                            VALUES(
+                                %s,
+                                DEFAULT,
+                                {', '.join(['%s'] * len(adding_word_dict))}
+                            )
                             RETURNING *;
                         ''',
                         [
@@ -95,8 +103,8 @@ class WordDB:
                 cur.row_factory = class_row(Book)
                 await cur.execute(
                     '''
-                        SELECT * FROM book
-                        WHERE name = %s;
+                        SELECT * FROM "book"
+                        WHERE "name" = %s;
                     ''',
                     [
                         book_name,
@@ -110,8 +118,16 @@ class WordDB:
                 try:
                     await cur.execute(
                         f'''
-                            INSERT INTO word(book_id, word_id, {', '.join(adding_word_dict.keys())})
-                            VALUES(%s, DEFAULT, {', '.join(['%s'] * len(adding_word_dict))})
+                            INSERT INTO "word"(
+                                "book_id",
+                                "word_id",
+                                {', '.join([f'"{key}"' for key in adding_word_dict.keys()])}
+                            )
+                            VALUES(
+                                %s,
+                                DEFAULT,
+                                {', '.join(['%s'] * len(adding_word_dict))}
+                            )
                             RETURNING *;
                         ''',
                         [
@@ -131,8 +147,8 @@ class WordDB:
                 cur.row_factory = class_row(Book)
                 await cur.execute(
                     '''
-                        SELECT * FROM book
-                        WHERE book_id = %s;
+                        SELECT * FROM "book"
+                        WHERE "book_id" = %s;
                     ''',
                     [
                         book_id,
@@ -146,8 +162,9 @@ class WordDB:
                 if not editing_word_dict:
                     await cur.execute(
                         '''
-                            SELECT * FROM word
-                            WHERE book_id = %s and word_id = %s;
+                            SELECT * FROM "word"
+                            WHERE "book_id" = %s
+                            AND "word_id" = %s;
                         ''',
                         [
                             book.book_id,
@@ -158,9 +175,10 @@ class WordDB:
                     try:
                         await cur.execute(
                             f'''
-                                UPDATE word
-                                SET {', '.join([f'{key} = %s' for key in editing_word_dict.keys()])}
-                                WHERE book_id = %s and word_id = %s
+                                UPDATE "word"
+                                SET {', '.join([f'"{key}" = %s' for key in editing_word_dict.keys()])}
+                                WHERE "book_id" = %s
+                                AND "word_id" = %s
                                 RETURNING *;
                             ''',
                             [
@@ -182,8 +200,8 @@ class WordDB:
                 cur.row_factory = class_row(Book)
                 await cur.execute(
                     '''
-                        SELECT * FROM book
-                        WHERE name = %s;
+                        SELECT * FROM "book"
+                        WHERE "name" = %s;
                     ''',
                     [
                         book_name,
@@ -197,8 +215,9 @@ class WordDB:
                 if not editing_word_dict:
                     await cur.execute(
                         '''
-                            SELECT * FROM word
-                            WHERE book_id = %s and word_id = %s;
+                            SELECT * FROM "word"
+                            WHERE "book_id" = %s
+                            AND "word_id" = %s;
                         ''',
                         [
                             book.book_id,
@@ -209,9 +228,10 @@ class WordDB:
                     try:
                         await cur.execute(
                             f'''
-                                UPDATE word
-                                SET {', '.join([f'{key} = %s' for key in editing_word_dict.keys()])}
-                                WHERE book_id = %s and word_id = %s
+                                UPDATE "word"
+                                SET {', '.join([f'"{key}" = %s' for key in editing_word_dict.keys()])}
+                                WHERE "book_id" = %s
+                                AND "word_id" = %s
                                 RETURNING *;
                             ''',
                             [
@@ -233,8 +253,8 @@ class WordDB:
                 cur.row_factory = class_row(Book)
                 await cur.execute(
                     '''
-                        SELECT * FROM book
-                        WHERE book_id = %s;
+                        SELECT * FROM "book"
+                        WHERE "book_id" = %s;
                     ''',
                     [
                         book_id,
@@ -246,8 +266,8 @@ class WordDB:
                 cur.row_factory = class_row(Word)
                 await cur.execute(
                     '''
-                        DELETE FROM word
-                        WHERE book_id = %s
+                        DELETE FROM "word"
+                        WHERE "book_id" = %s
                         RETURNING *;
                     ''',
                     [
@@ -263,8 +283,8 @@ class WordDB:
                 cur.row_factory = class_row(Book)
                 await cur.execute(
                     '''
-                        SELECT * FROM book
-                        WHERE name = %s;
+                        SELECT * FROM "book"
+                        WHERE "name" = %s;
                     ''',
                     [
                         book_name,
@@ -276,8 +296,8 @@ class WordDB:
                 cur.row_factory = class_row(Word)
                 await cur.execute(
                     '''
-                        DELETE FROM word
-                        WHERE book_id = %s
+                        DELETE FROM "word"
+                        WHERE "book_id" = %s
                         RETURNING *;
                     ''',
                     [
@@ -293,8 +313,8 @@ class WordDB:
                 cur.row_factory = class_row(Book)
                 await cur.execute(
                     '''
-                        SELECT * FROM book
-                        WHERE book_id = %s;
+                        SELECT * FROM "book"
+                        WHERE "book_id" = %s;
                     ''',
                     [
                         book_id,
@@ -306,8 +326,9 @@ class WordDB:
                 cur.row_factory = class_row(Word)
                 await cur.execute(
                     '''
-                        DELETE FROM word
-                        WHERE book_id = %s and word_id = %s
+                        DELETE FROM "word"
+                        WHERE "book_id" = %s
+                        AND "word_id" = %s
                         RETURNING *;
                     ''',
                     [
@@ -326,8 +347,8 @@ class WordDB:
                 cur.row_factory = class_row(Book)
                 await cur.execute(
                     '''
-                        SELECT * FROM book
-                        WHERE name = %s;
+                        SELECT * FROM "book"
+                        WHERE "name" = %s;
                     ''',
                     [
                         book_name,
@@ -339,8 +360,9 @@ class WordDB:
                 cur.row_factory = class_row(Word)
                 await cur.execute(
                     '''
-                        DELETE FROM word
-                        WHERE book_id = %s and word_id = %s
+                        DELETE FROM "word"
+                        WHERE "book_id" = %s
+                        AND "word_id" = %s
                         RETURNING *;
                     ''',
                     [
@@ -359,8 +381,8 @@ class WordDB:
                 cur.row_factory = class_row(Book)
                 await cur.execute(
                     '''
-                        SELECT * FROM book
-                        WHERE book_id = %s;
+                        SELECT * FROM "book"
+                        WHERE "book_id" = %s;
                     ''',
                     [
                         book_id,
@@ -372,8 +394,8 @@ class WordDB:
                 cur.row_factory = class_row(Word)
                 await cur.execute(
                     '''
-                        SELECT * FROM word
-                        WHERE book_id = %s;
+                        SELECT * FROM "word"
+                        WHERE "book_id" = %s;
                     ''',
                     [
                         book.book_id,
@@ -388,8 +410,8 @@ class WordDB:
                 cur.row_factory = class_row(Book)
                 await cur.execute(
                     '''
-                        SELECT * FROM book
-                        WHERE name = %s;
+                        SELECT * FROM "book"
+                        WHERE "name" = %s;
                     ''',
                     [
                         book_name,
@@ -401,8 +423,8 @@ class WordDB:
                 cur.row_factory = class_row(Word)
                 await cur.execute(
                     '''
-                        SELECT * FROM word
-                        WHERE book_id = %s;
+                        SELECT * FROM "word"
+                        WHERE "book_id" = %s;
                     ''',
                     [
                         book.book_id,
@@ -417,8 +439,8 @@ class WordDB:
                 cur.row_factory = class_row(Book)
                 await cur.execute(
                     '''
-                        SELECT * FROM book
-                        WHERE book_id = %s;
+                        SELECT * FROM "book"
+                        WHERE "book_id" = %s;
                     ''',
                     [
                         book_id,
@@ -430,8 +452,9 @@ class WordDB:
                 cur.row_factory = class_row(Word)
                 await cur.execute(
                     '''
-                        SELECT * FROM word
-                        WHERE book_id = %s and word_id = %s;
+                        SELECT * FROM "word"
+                        WHERE "book_id" = %s
+                        AND "word_id" = %s;
                     ''',
                     [
                         book.book_id,
@@ -449,8 +472,8 @@ class WordDB:
                 cur.row_factory = class_row(Book)
                 await cur.execute(
                     '''
-                        SELECT * FROM book
-                        WHERE name = %s;
+                        SELECT * FROM "book"
+                        WHERE "name" = %s;
                     ''',
                     [
                         book_name,
@@ -462,8 +485,9 @@ class WordDB:
                 cur.row_factory = class_row(Word)
                 await cur.execute(
                     '''
-                        SELECT * FROM word
-                        WHERE book_id = %s and word_id = %s;
+                        SELECT * FROM "word"
+                        WHERE "book_id" = %s
+                        AND "word_id" = %s;
                     ''',
                     [
                         book.book_id,
