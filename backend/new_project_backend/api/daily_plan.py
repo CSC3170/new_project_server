@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from ..db.daily_plan import daily_plan_db
 from ..db.errors import DuplicateRecordError, NotExistsError
+from ..db.word import word_db
 from ..model.daily_plan import AddingDailyPlan, EditingDailyPlan
 from ..model.user import User
 from .auth import get_current_user
@@ -66,6 +67,33 @@ async def delete_daily_plan(book_name: str, user: User = Depends(get_current_use
     try:
         daily_plan = await daily_plan_db.delete_by_user_id_and_book_name(user.user_id, book_name)
         return daily_plan
+    except NotExistsError as error:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f'Incorrect {error.name}',
+        ) from error
+
+
+@daily_plan_router.get('/daily-plan/{book_name}/word')
+async def query_daily_plan_word(book_name: str, user: User = Depends(get_current_user)):
+    try:
+        daily_plan = await daily_plan_db.query_by_user_id_and_book_name(user.user_id, book_name)
+        word = await word_db.query_by_book_name_and_order(book_name, daily_plan.progress)
+        return word.spelling
+    except NotExistsError as error:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f'Incorrect {error.name}',
+        ) from error
+
+
+@daily_plan_router.post('/daily-plan/{book_name}/word')
+async def update_daily_plan_word(book_name: str, user: User = Depends(get_current_user)):
+    try:
+        daily_plan = await daily_plan_db.query_by_user_id_and_book_name(user.user_id, book_name)
+        word = await word_db.query_by_book_name_and_order(book_name, daily_plan.progress)
+        await daily_plan_db.update_progress_by_user_id_and_book_name(user.user_id, book_name)
+        return word
     except NotExistsError as error:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,

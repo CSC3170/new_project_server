@@ -29,8 +29,8 @@ class DailyPlanDB:
                         );
 
                         CREATE TABLE IF NOT EXISTS "daily_plan_evaluation_detail"(
-                            "daily_plan_evaluation_id" BIGSERIAL PRIMARY KEY,
-                            "date" DATE UNIQUE NOT NULL,
+                            "evaluation_id" BIGSERIAL PRIMARY KEY,
+                            "date" TIMESTAMP UNIQUE NOT NULL,
                             "daily_goal" BIGINT NOT NULL,
                             "daily_progress" BIGINT NOT NULL
                         );
@@ -38,9 +38,8 @@ class DailyPlanDB:
                         CREATE TABLE IF NOT EXISTS "daily_plan_evaluation"(
                             "user_id" BIGINT NOT NULL REFERENCES "user"("user_id"),
                             "book_id" BIGINT NOT NULL REFERENCES "book"("book_id"),
-                            "daily_plan_evaluation_id" BIGINT NOT NULL
-                                REFERENCES "daily_plan_evaluation_detail"("daily_plan_evaluation_id"),
-                            PRIMARY KEY ("user_id", "book_id", "daily_plan_evaluation_id")
+                            "evaluation_id" BIGINT NOT NULL REFERENCES "daily_plan_evaluation_detail"("evaluation_id"),
+                            PRIMARY KEY ("user_id", "book_id", "evaluation_id")
                         );
                     '''
                 )
@@ -291,6 +290,54 @@ class DailyPlanDB:
                         SELECT * FROM "daily_plan"
                         WHERE "user_id" = %s
                         AND "book_id" = %s;
+                    ''',
+                    [
+                        user.user_id,
+                        book.book_id,
+                    ],
+                )
+                daily_plan = await cur.fetchone()
+                if daily_plan is None:
+                    raise NotExistsError('daily plan')
+                return daily_plan
+
+    async def update_progress_by_user_id_and_book_name(self, user_id: int, book_name: str):
+        async with self._connection_generator() as conn:
+            async with conn.cursor() as cur:
+                cur.row_factory = class_row(User)
+                await cur.execute(
+                    '''
+                        SELECT * FROM "user"
+                        WHERE "user_id" = %s;
+                    ''',
+                    [
+                        user_id,
+                    ],
+                )
+                user = await cur.fetchone()
+                if user is None:
+                    raise NotExistsError('user')
+                cur.row_factory = class_row(Book)
+                await cur.execute(
+                    '''
+                        SELECT * FROM "book"
+                        WHERE "name" = %s;
+                    ''',
+                    [
+                        book_name,
+                    ],
+                )
+                book = await cur.fetchone()
+                if book is None:
+                    raise NotExistsError('book')
+                cur.row_factory = class_row(DailyPlan)
+                await cur.execute(
+                    '''
+                        UPDATE "daily_plan"
+                        SET "progress" = "progress" + 1
+                        WHERE "user_id" = %s
+                        AND "book_id" = %s
+                        RETURNING *;
                     ''',
                     [
                         user.user_id,
