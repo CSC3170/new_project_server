@@ -4,13 +4,13 @@ from ..db.errors import DuplicateRecordError, NotExistsError
 from ..db.word import word_db
 from ..model.user import User
 from ..model.word import AddingWord, EditingWord
-from .auth import get_current_user, get_current_user_and_require_admin
+from .auth import get_current_user_and_require_admin
 
 word_router = APIRouter()
 
 
 @word_router.get('/words/{book_name}')
-async def query_words(book_name: str, _: User = Depends(get_current_user)):
+async def query_words(book_name: str, _: User = Depends(get_current_user_and_require_admin)):
     try:
         words = await word_db.query_by_book_name(book_name)
         return words
@@ -22,7 +22,7 @@ async def query_words(book_name: str, _: User = Depends(get_current_user)):
 
 
 @word_router.get('/word/{book_name}/{word_id}')
-async def query_word(book_name: str, word_id: int, _: User = Depends(get_current_user)):
+async def query_word(book_name: str, word_id: int, _: User = Depends(get_current_user_and_require_admin)):
     try:
         word = await word_db.query_by_book_name_and_word_id(book_name, word_id)
         return word
@@ -34,7 +34,7 @@ async def query_word(book_name: str, word_id: int, _: User = Depends(get_current
 
 
 @word_router.get('/word-by-order/{book_name}/{order}')
-async def query_word(book_name: str, order: int, _: User = Depends(get_current_user)):
+async def query_word(book_name: str, order: int, _: User = Depends(get_current_user_and_require_admin)):
     try:
         word = await word_db.query_by_book_name_and_order(book_name, order)
         return word
