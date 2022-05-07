@@ -30,7 +30,7 @@ class DailyPlanDB:
 
                         CREATE TABLE IF NOT EXISTS "daily_plan_evaluation_detail"(
                             "evaluation_id" BIGSERIAL PRIMARY KEY,
-                            "date" TIMESTAMP UNIQUE NOT NULL,
+                            "date" TIMESTAMP NOT NULL,
                             "daily_goal" BIGINT NOT NULL,
                             "daily_progress" BIGINT NOT NULL
                         );
