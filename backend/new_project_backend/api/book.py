@@ -4,19 +4,19 @@ from ..db.book import book_db
 from ..db.errors import DuplicateRecordError, NotExistsError
 from ..model.book import AddingBook, EditingBook
 from ..model.user import User
-from .auth import get_current_user_and_require_admin
+from .auth import get_current_user, get_current_user_and_require_admin
 
 book_router = APIRouter()
 
 
 @book_router.get('/books')
-async def query_books(_: User = Depends(get_current_user_and_require_admin)):
+async def query_books(_: User = Depends(get_current_user)):
     books = await book_db.query()
     return books
 
 
 @book_router.get('/book/{book_name}')
-async def query_book(book_name: str, _: User = Depends(get_current_user_and_require_admin)):
+async def query_book(book_name: str, _: User = Depends(get_current_user)):
     try:
         book = await book_db.query_by_name(book_name)
         return book
