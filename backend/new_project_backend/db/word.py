@@ -20,7 +20,7 @@ class WordDB:
                 await cur.execute(
                     '''
                         CREATE TABLE IF NOT EXISTS "word"(
-                            "book_id" BIGINT NOT NULL REFERENCES "book"("book_id"),
+                            "book_id" BIGINT NOT NULL REFERENCES "book"("book_id") ON DELETE CASCADE,
                             "word_id" BIGINT NOT NULL,
                             "spelling" TEXT NOT NULL,
                             "translation" TEXT,

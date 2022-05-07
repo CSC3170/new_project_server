@@ -21,8 +21,8 @@ class DailyPlanDB:
                 await cur.execute(
                     '''
                         CREATE TABLE IF NOT EXISTS "daily_plan"(
-                            "user_id" BIGINT REFERENCES "user"("user_id"),
-                            "book_id" BIGINT REFERENCES "book"("book_id"),
+                            "user_id" BIGINT REFERENCES "user"("user_id") ON DELETE CASCADE,
+                            "book_id" BIGINT REFERENCES "book"("book_id") ON DELETE CASCADE,
                             "daily_goal" BIGINT NOT NULL,
                             "progress" BIGINT NOT NULL DEFAULT 0,
                             PRIMARY KEY ("user_id", "book_id")
@@ -38,7 +38,8 @@ class DailyPlanDB:
                         CREATE TABLE IF NOT EXISTS "daily_plan_evaluation"(
                             "user_id" BIGINT NOT NULL REFERENCES "user"("user_id"),
                             "book_id" BIGINT NOT NULL REFERENCES "book"("book_id"),
-                            "evaluation_id" BIGINT NOT NULL REFERENCES "daily_plan_evaluation_detail"("evaluation_id"),
+                            "evaluation_id" BIGINT NOT NULL
+                                REFERENCES "daily_plan_evaluation_detail"("evaluation_id") ON DELETE CASCADE,
                             PRIMARY KEY ("user_id", "book_id", "evaluation_id")
                         );
                     '''
