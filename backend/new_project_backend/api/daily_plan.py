@@ -90,7 +90,7 @@ async def query_daily_plan_word(book_name: str, user: User = Depends(get_current
         else:
             return WordResponce(
                 is_submitted=True,
-                **word,
+                **word.dict(),
             )
     except NotExistsError as error:
         raise HTTPException(

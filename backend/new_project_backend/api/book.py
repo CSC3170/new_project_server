@@ -28,7 +28,7 @@ async def query_book(book_name: str, _: User = Depends(get_current_user)):
 
 
 @book_router.get('/book-by-id/{book_id}')
-async def query_book_by_id(book_id: str, _: User = Depends(get_current_user)):
+async def query_book_by_id(book_id: int, _: User = Depends(get_current_user)):
     try:
         book = await book_db.query_by_book_id(book_id)
         return book

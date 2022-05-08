@@ -249,6 +249,7 @@ class UserDB:
                 if user is None:
                     raise NotExistsError('user')
                 try:
+                    password_hasher.verify(user.hashed_password, password)
                     if password_hasher.check_needs_rehash(user.hashed_password):
                         user.hashed_password = password_hasher.hash(password)
                         await cur.execute(

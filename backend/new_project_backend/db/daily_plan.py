@@ -335,10 +335,14 @@ class DailyPlanDB:
                 cur.row_factory = class_row(DailyPlan)
                 await cur.execute(
                     '''
-                        SELECT * FROM  "daily_plan"
+                        SELECT * FROM "daily_plan"
                         WHERE "user_id" = %s
                         AND "book_id" = %s;
-                    '''
+                    ''',
+                    [
+                        user.user_id,
+                        book.book_id,
+                    ],
                 )
                 daily_plan = await cur.fetchone()
                 if daily_plan is None:
