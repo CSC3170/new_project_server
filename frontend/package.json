@@ -5,6 +5,7 @@
   "private": true,
   "author": "huhaichuan <huhaichuan0704@126.com>",
   "dependencies": {
+    "@ant-design/icons": "^4.7.0",
     "antd": "^4.20.1",
     "isomorphic-fetch": "^3.0.0",
     "lodash": "^4.17.21",

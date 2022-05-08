@@ -27,6 +27,18 @@ async def query_book(book_name: str, _: User = Depends(get_current_user)):
         ) from error
 
 
+@book_router.get('/book-by-id/{book_id}')
+async def query_book_by_id(book_id: str, _: User = Depends(get_current_user)):
+    try:
+        book = await book_db.query_by_book_id(book_id)
+        return book
+    except NotExistsError as error:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f'Incorrect {error.name}',
+        ) from error
+
+
 @book_router.post('/book')
 async def add_book(adding_book: AddingBook, _: User = Depends(get_current_user_and_require_admin)):
     try:

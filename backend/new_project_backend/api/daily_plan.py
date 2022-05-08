@@ -5,6 +5,7 @@ from ..db.errors import DuplicateRecordError, NotExistsError
 from ..db.word import word_db
 from ..model.daily_plan import AddingDailyPlan, EditingDailyPlan
 from ..model.user import User
+from ..model.word import WordResponce
 from .auth import get_current_user
 
 daily_plan_router = APIRouter()
@@ -79,7 +80,18 @@ async def query_daily_plan_word(book_name: str, user: User = Depends(get_current
     try:
         daily_plan = await daily_plan_db.query_by_user_id_and_book_name(user.user_id, book_name)
         word = await word_db.query_by_book_name_and_order(book_name, daily_plan.progress)
-        return word.spelling
+        if not daily_plan.is_submitted:
+            return WordResponce(
+                is_submitted=False,
+                book_id=word.book_id,
+                word_id=word.word_id,
+                spelling=word.spelling,
+            )
+        else:
+            return WordResponce(
+                is_submitted=True,
+                **word,
+            )
     except NotExistsError as error:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -88,12 +100,9 @@ async def query_daily_plan_word(book_name: str, user: User = Depends(get_current
 
 
 @daily_plan_router.post('/daily-plan/{book_name}/word')
-async def update_daily_plan_word(book_name: str, user: User = Depends(get_current_user)):
+async def submit_daily_plan_word(book_name: str, user: User = Depends(get_current_user)):
     try:
-        daily_plan = await daily_plan_db.query_by_user_id_and_book_name(user.user_id, book_name)
-        word = await word_db.query_by_book_name_and_order(book_name, daily_plan.progress)
         await daily_plan_db.update_progress_by_user_id_and_book_name(user.user_id, book_name)
-        return word
     except NotExistsError as error:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,

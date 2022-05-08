@@ -18,3 +18,11 @@ class AddingWord(BaseModel):
 class EditingWord(BaseModel):
     spelling: Optional[str] = None
     translation: Optional[str] = None
+
+
+class WordResponce(BaseModel):
+    is_submitted: bool = False
+    book_id: int
+    word_id: int
+    spelling: str
+    translation: Optional[str] = None

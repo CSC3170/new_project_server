@@ -24,6 +24,7 @@ class DailyPlanDB:
                             "user_id" BIGINT REFERENCES "user"("user_id") ON DELETE CASCADE,
                             "book_id" BIGINT REFERENCES "book"("book_id") ON DELETE CASCADE,
                             "daily_goal" BIGINT NOT NULL,
+                            "is_submitted" BOOLEAN NOT NULL DEFAULT FALSE,
                             "progress" BIGINT NOT NULL DEFAULT 0,
                             PRIMARY KEY ("user_id", "book_id")
                         );
@@ -334,17 +335,43 @@ class DailyPlanDB:
                 cur.row_factory = class_row(DailyPlan)
                 await cur.execute(
                     '''
-                        UPDATE "daily_plan"
-                        SET "progress" = "progress" + 1
+                        SELECT * FROM  "daily_plan"
                         WHERE "user_id" = %s
-                        AND "book_id" = %s
-                        RETURNING *;
-                    ''',
-                    [
-                        user.user_id,
-                        book.book_id,
-                    ],
+                        AND "book_id" = %s;
+                    '''
                 )
+                daily_plan = await cur.fetchone()
+                if daily_plan is None:
+                    raise NotExistsError('daily plan')
+                if daily_plan.is_submitted:
+                    await cur.execute(
+                        '''
+                            UPDATE "daily_plan"
+                            SET "progress" = "progress" + 1,
+                            "is_submitted" = FALSE
+                            WHERE "user_id" = %s
+                            AND "book_id" = %s
+                            RETURNING *;
+                        ''',
+                        [
+                            user.user_id,
+                            book.book_id,
+                        ],
+                    )
+                else:
+                    await cur.execute(
+                        '''
+                            UPDATE "daily_plan"
+                            SET "is_submitted" = TRUE
+                            WHERE "user_id" = %s
+                            AND "book_id" = %s
+                            RETURNING *;
+                        ''',
+                        [
+                            user.user_id,
+                            book.book_id,
+                        ],
+                    )
                 daily_plan = await cur.fetchone()
                 if daily_plan is None:
                     raise NotExistsError('daily plan')

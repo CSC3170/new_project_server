@@ -8,6 +8,7 @@ class DailyPlan(BaseModel):
     user_id: int
     book_id: int
     daily_goal: int
+    is_submitted: bool = False
     progress: int = 0
 
 
