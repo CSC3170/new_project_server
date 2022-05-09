@@ -1,4 +1,4 @@
-interface WordType {
+interface IWord {
   is_submitted: boolean;
   book_id: number;
   word_id: number;
@@ -6,4 +6,4 @@ interface WordType {
   translation: string | null;
 }
 
-export { type WordType };
+export { type IWord };

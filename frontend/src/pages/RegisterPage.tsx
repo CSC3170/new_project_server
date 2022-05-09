@@ -5,7 +5,9 @@ import { Register } from '../components/Register';
 const RegisterPage = () => {
   return (
     <RequireNotAuth>
-      <Register />
+      <div style={{ display: 'flex', height: '100%', justifyContent: 'center', alignItems: 'center' }}>
+        <Register />
+      </div>
     </RequireNotAuth>
   );
 };

@@ -1,4 +1,4 @@
-interface User {
+interface IUser {
   user_id: number;
   name: string;
   is_admin: boolean;
@@ -7,4 +7,4 @@ interface User {
   phone: string | null;
 }
 
-export { type User };
+export { type IUser };

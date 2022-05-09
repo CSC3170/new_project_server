@@ -1,6 +1,6 @@
 import { AuthContextType } from '../auth/AuthContext';
-import { DailyPlan } from '../model/DailyPlan';
-import { WordType } from '../model/Word';
+import { IDailyPlan } from '../model/DailyPlan';
+import { IWord } from '../model/Word';
 
 const queryDailyPlans = async (authContext: AuthContextType) => {
   const res = await fetch('/api/daily-plans', {
@@ -10,13 +10,13 @@ const queryDailyPlans = async (authContext: AuthContextType) => {
     },
   });
   if (!res.ok) {
-    if (res.status == 400) {
+    if (res.status == 401) {
       authContext.setToken(null);
     } else {
       throw new Error(res.statusText);
     }
   }
-  return (await res.json()) as DailyPlan[];
+  return (await res.json()) as IDailyPlan[];
 };
 
 const queryDailyPlanWord = async (book_name: string, authContext: AuthContextType) => {
@@ -27,13 +27,13 @@ const queryDailyPlanWord = async (book_name: string, authContext: AuthContextTyp
     },
   });
   if (!res.ok) {
-    if (res.status == 400) {
+    if (res.status == 401) {
       authContext.setToken(null);
     } else {
       throw new Error(res.statusText);
     }
   }
-  return (await res.json()) as WordType;
+  return (await res.json()) as IWord;
 };
 
 const submitDailyPlanWord = async (book_name: string, authContext: AuthContextType) => {
@@ -44,13 +44,13 @@ const submitDailyPlanWord = async (book_name: string, authContext: AuthContextTy
     },
   });
   if (!res.ok) {
-    if (res.status == 400) {
+    if (res.status == 401) {
       authContext.setToken(null);
     } else {
       throw new Error(res.statusText);
     }
   }
-  return (await res.json()) as WordType;
+  return (await res.json()) as IWord;
 };
 
 export { queryDailyPlans, queryDailyPlanWord, submitDailyPlanWord };

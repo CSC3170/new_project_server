@@ -5,7 +5,9 @@ import { Login } from '../components/Login';
 const LoginPage = () => {
   return (
     <RequireNotAuth>
-      <Login />
+      <div style={{ display: 'flex', height: '100%', justifyContent: 'center', alignItems: 'center' }}>
+        <Login />
+      </div>
     </RequireNotAuth>
   );
 };

@@ -1,9 +1,9 @@
 import { CheckOutlined, CloseOutlined, DoubleRightOutlined } from '@ant-design/icons';
-import { Button, Col, Row } from 'antd';
-import React, { ComponentProps, useContext, useState } from 'react';
-import { submitDailyPlanWord } from '../api/DailyPlan';
+import { Button } from 'antd';
+import React, { ComponentProps, useContext, useEffect, useState } from 'react';
+import { queryDailyPlanWord, submitDailyPlanWord } from '../api/DailyPlan';
 import { AuthContext } from '../auth/AuthContext';
-import { WordType } from '../model/Word';
+import { IWord } from '../model/Word';
 
 const CheckMarkButton = (props: ComponentProps<typeof Button>) => {
   const [hover, setHover] = useState(false);
@@ -84,143 +84,174 @@ const XMarkButton = (props: ComponentProps<typeof Button>) => {
     );
   }
 };
+
 const NextPageButton = (props: ComponentProps<typeof Button>) => {
-  return (
-    <Button size='large' icon={<DoubleRightOutlined />} onClick={props.onClick}>
-      NEXT
-    </Button>
-  );
-};
+  const [hover, setHover] = useState(false);
 
-interface WordPropsType {
-  bookName: string;
-  word: WordType;
-  setRefreshing: (newRefreshing: boolean) => void;
-}
+  const onMouseEnter = () => {
+    setHover(true);
+  };
 
-const Word = ({ bookName, word, setRefreshing }: WordPropsType) => {
-  const authContext = useContext(AuthContext);
+  const onMouseLeave = () => {
+    setHover(false);
+  };
 
-  if (!word.is_submitted) {
+  if (!hover) {
     return (
-      <Row align='middle' style={{ height: '100%' }}>
-        <Col span={24}>
-          <Row align='middle' justify='center'>
-            <Col
-              span={20}
-              style={{
-                textAlign: 'center',
-              }}
-            >
-              <p
-                style={{
-                  fontSize: 48,
-                  color: '#595959',
-                }}
-              >
-                {word.spelling}
-              </p>
-            </Col>
-          </Row>
-          <Row align='middle' justify='center'>
-            <Col>
-              <p
-                style={{
-                  fontSize: 20,
-                  color: '#595959',
-                }}
-              >
-                Do you know the word?
-              </p>
-            </Col>
-          </Row>
-          <Row align='middle' justify='center' gutter={64}>
-            <Col
-              span={10}
-              style={{
-                textAlign: 'right',
-              }}
-            >
-              <CheckMarkButton
-                onClick={() => {
-                  submitDailyPlanWord(bookName, authContext);
-                  setRefreshing(true);
-                }}
-              />
-            </Col>
-            <Col
-              span={10}
-              style={{
-                textAlign: 'left',
-              }}
-            >
-              <XMarkButton
-                onClick={() => {
-                  submitDailyPlanWord(bookName, authContext);
-                  setRefreshing(true);
-                }}
-              />
-            </Col>
-          </Row>
-        </Col>
-      </Row>
+      <Button
+        size='large'
+        icon={<DoubleRightOutlined />}
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
+        onClick={props.onClick}
+      >
+        NEXT
+      </Button>
     );
   } else {
     return (
-      <Row align='middle' style={{ height: '100%' }}>
-        <Col span={24}>
-          <Row align='middle' justify='center'>
-            <Col
-              span={20}
-              style={{
-                textAlign: 'center',
-              }}
-            >
-              <p
-                style={{
-                  fontSize: 48,
-                  color: '#595959',
-                }}
-              >
-                {word.spelling}
-              </p>
-            </Col>
-          </Row>
-          <Row align='middle' justify='center'>
-            <Col
-              span={20}
-              style={{
-                textAlign: 'center',
-              }}
-            >
-              <p
-                style={{
-                  fontSize: 30,
-                  color: '#595959',
-                }}
-              >
-                {word.translation}
-              </p>
-            </Col>
-          </Row>
-          <Row align='middle' justify='center'>
-            <Col
-              span={12}
-              style={{
-                textAlign: 'center',
-              }}
-            >
-              <NextPageButton
-                onClick={() => {
-                  submitDailyPlanWord(bookName, authContext);
-                  setRefreshing(true);
-                }}
-              />
-            </Col>
-          </Row>
-        </Col>
-      </Row>
+      <Button
+        type='primary'
+        size='large'
+        icon={<DoubleRightOutlined />}
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
+        onClick={props.onClick}
+      >
+        NEXT
+      </Button>
     );
+  }
+};
+
+interface WordItemProps {
+  bookName: string;
+  word: IWord;
+  setRefreshing: (newRefreshing: boolean) => void;
+}
+
+const NotSubmittedWordItem = ({ bookName, word, setRefreshing }: WordItemProps) => {
+  const authContext = useContext(AuthContext);
+
+  return (
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        width: '80%',
+      }}
+    >
+      <p
+        style={{
+          fontSize: 48,
+          color: 'var(--text-color)',
+          wordBreak: 'break-all',
+        }}
+      >
+        {word.spelling}
+      </p>
+      <p
+        style={{
+          fontSize: 20,
+          color: 'var(--text-color-secondary)',
+        }}
+      >
+        Do you know the word?
+      </p>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          textAlign: 'center',
+          width: '100%',
+          maxWidth: 200,
+        }}
+      >
+        <CheckMarkButton
+          onClick={() => {
+            submitDailyPlanWord(bookName, authContext);
+            setRefreshing(true);
+          }}
+        />
+        <XMarkButton
+          onClick={() => {
+            submitDailyPlanWord(bookName, authContext);
+            setRefreshing(true);
+          }}
+        />
+      </div>
+    </div>
+  );
+};
+
+const SubmittedWordItem = ({ bookName, word, setRefreshing }: WordItemProps) => {
+  const authContext = useContext(AuthContext);
+
+  return (
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        width: '100%',
+      }}
+    >
+      <p
+        style={{
+          fontSize: 48,
+          color: 'var(--text-color)',
+          wordBreak: 'break-all',
+          textAlign: 'center',
+          width: '80%',
+        }}
+      >
+        {word.spelling}
+      </p>
+      <p
+        style={{
+          fontSize: 36,
+          color: 'var(--text-color)',
+          wordBreak: 'break-all',
+          textAlign: 'center',
+          maxWidth: '80%',
+        }}
+      >
+        {word.translation}
+      </p>
+      <NextPageButton
+        onClick={() => {
+          submitDailyPlanWord(bookName, authContext);
+          setRefreshing(true);
+        }}
+      />
+    </div>
+  );
+};
+
+const Word = ({ bookName }: { bookName: string }) => {
+  const authContext = useContext(AuthContext);
+  const [refreshing, setRefreshing] = useState(false);
+  const [word, setWord] = useState<IWord>();
+
+  useEffect(() => {
+    queryDailyPlanWord(bookName, authContext).then((newWord) => {
+      setWord(newWord);
+      setRefreshing(false);
+    });
+  }, [bookName, authContext, refreshing]);
+
+  if (word == null) {
+    return <></>;
+  }
+
+  if (!word.is_submitted) {
+    return <NotSubmittedWordItem bookName={bookName} word={word} setRefreshing={setRefreshing} />;
+  } else {
+    return <SubmittedWordItem bookName={bookName} word={word} setRefreshing={setRefreshing} />;
   }
 };
 
